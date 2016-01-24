@@ -35,3 +35,6 @@ OBJECTS += $(BUILD_DIR)Demo/startup.o
 #	Main Test Program
 #
 OBJECTS += $(BUILD_DIR)Demo/main.o
+
+#video stuff
+OBJECTS += $(BUILD_DIR)Demo/Drivers/video.o
