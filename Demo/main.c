@@ -33,11 +33,14 @@ void task2(void *pParam) {
  *	-- the same prototype as you'd see in a linux program.
  **/
 void main(void) {
+	SetGpioFunction(47, 1);			// RDY led
+
+	initFB();
+	SetGpio(47, 1);
+	videotest();
 
 	DisableInterrupts();
 	InitInterruptController();
-
-	SetGpioFunction(47, 1);			// RDY led
 
 	xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
 	xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
