@@ -12,10 +12,10 @@ LINKER_SCRIPT=raspberrypi.ld
 -include .dbuild/dbuild.mk
 
 
-all: kernel.list kernel.img kernel.syms
+all: kernel.list kernel7.img kernel.syms
 	@$(SIZE) kernel.elf
 
-kernel.img: kernel.elf
+kernel7.img: kernel.elf
 	$(Q)$(PRETTY) IMAGE $(MODULE_NAME) $@
 	$(Q)$(OBJCOPY) kernel.elf -O binary $@
 
