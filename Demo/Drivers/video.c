@@ -1,3 +1,4 @@
+#include "5x5_font.h"
 extern void PUT32(int dest, int src);
 extern int GET32(int src);
 
