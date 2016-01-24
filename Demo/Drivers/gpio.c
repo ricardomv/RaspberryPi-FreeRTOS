@@ -33,7 +33,7 @@ typedef struct {
 	//Ignoring the reserved and test bytes
 } BCM2835_GPIO_REGS;
 
-volatile BCM2835_GPIO_REGS * const pRegs = (BCM2835_GPIO_REGS *) (0x20200000);
+volatile BCM2835_GPIO_REGS * const pRegs = (BCM2835_GPIO_REGS *) (0x3f200000);
 
 
 void SetGpioFunction(unsigned int pinNum, unsigned int funcNum) {
