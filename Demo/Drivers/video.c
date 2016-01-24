@@ -28,6 +28,9 @@ int MailboxRead(int channel){
 }
 
 void initFB(){
+	//good docuentation on the mailbox functions
+	//https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
+
 	mailbuffer[0] = 22 * 4; //mail buffer size
 	mailbuffer[1] = 0; //response code
 
@@ -52,19 +55,19 @@ void initFB(){
 	mailbuffer[16] = 0x00040001; //allocate buffer
 	mailbuffer[17] = 8; //value buffer size
 	mailbuffer[18] = 4; //Req. + value length (bytes)
-	mailbuffer[19] = 0; //address
-	mailbuffer[20] = 0; //size
+	mailbuffer[19] = 0; //framebuffer address
+	mailbuffer[20] = 0; //framebuffer size
 
 	mailbuffer[21] = 0; //terminate buffer
 
-	//write mail to the GPU until the response code is ok
+	//spam mail the GPU until the response code is ok
 	while(mailbuffer[1] != 0x80000000){
 		MailboxWrite((int)mailbuffer, 8);
 		MailboxRead(8);
 	}
 
 	//the framebuffer pointer is returned as a physical address,
-	//subtracting 0xC0000000 seems to convert it to virtual
+	//subtracting 0xC0000000 converts it to virtual/
 	framebuffer = mailbuffer[19] - 0xC0000000;
 }
 
