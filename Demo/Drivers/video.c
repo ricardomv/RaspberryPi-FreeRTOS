@@ -68,7 +68,7 @@ void initFB(){
 	framebuffer = mailbuffer[19] - 0xC0000000;
 }
 
-void test(){
+void videotest(){
 	//add disable_overscan=1 to your config.txt if you have under/over scan issues
 	int x;
 	for(x=0;x<1920*1080;x++){
