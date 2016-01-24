@@ -1,5 +1,5 @@
 
-CFLAGS += -march=armv6z -g -Wall -Wextra
+CFLAGS += -march=armv7-a -g -Wall -Wextra
 CFLAGS += -I $(BASE)FreeRTOS/Source/portable/GCC/RaspberryPi/
 CFLAGS += -I $(BASE)FreeRTOS/Source/include/
 CFLAGS += -I $(BASE)Demo/Drivers/
