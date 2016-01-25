@@ -12,7 +12,7 @@ extern int GET32(int src);
 unsigned int mailbuffer[22] __attribute__((aligned (16)));
 unsigned int* framebuffer;
 
-void MailboxWrite(int data_addr, int channel){
+void mailboxWrite(int data_addr, int channel){
 	int mailbox = 0x3f00B880;
 	while(1){
 		if((GET32(mailbox + 0x18)&0x80000000) == 0) break;
@@ -21,7 +21,7 @@ void MailboxWrite(int data_addr, int channel){
 	return;
 }
 
-int MailboxRead(int channel){
+int mailboxRead(int channel){
 	int ra;
 	int mailbox = 0x3f00B880;
 	while(1){
@@ -70,8 +70,8 @@ void initFB(){
 
 	//spam mail the GPU until the response code is ok
 	while(mailbuffer[1] != 0x80000000){
-		MailboxWrite((int)mailbuffer, 8);
-		MailboxRead(8);
+		mailboxWrite((int)mailbuffer, 8);
+		mailboxRead(8);
 	}
 
 	//the framebuffer pointer is returned as a physical address,
@@ -79,10 +79,10 @@ void initFB(){
 	framebuffer = (unsigned int*)(mailbuffer[19] - 0xC0000000);
 }
 
-void DrawChar(unsigned char c, int x, int y, int color) {
+void drawChar(unsigned char c, int x, int y, int color){
 	int i, j;
 
-	// Convert the character to an index
+	//convert the character to an index
 	c = c & 0x7F;
 	if (c < ' ') {
 		c = 0;
@@ -90,7 +90,7 @@ void DrawChar(unsigned char c, int x, int y, int color) {
 		c -= ' ';
 	}
 
-	// Draw pixels
+	//draw pixels
 	for (j = 0; j < CHAR_WIDTH; j++) {
 		for (i = 0; i < CHAR_HEIGHT; i++) {
 			unsigned char temp = font[c][j];
@@ -101,9 +101,9 @@ void DrawChar(unsigned char c, int x, int y, int color) {
 	}
 }
 
-void DrawString(const char* str, int x, int y, int color) {
+void drawString(const char* str, int x, int y, int color){
 	while (*str) {
-		DrawChar(*str++, x, y, color);
+		drawChar(*str++, x, y, color);
 		x += CHAR_WIDTH;
 	}
 }
@@ -114,5 +114,5 @@ void videotest(){
 	for(x = 0; x < SCREEN_X * SCREEN_Y; x++){
 		framebuffer[x] = 0x00000000;
 	}*/
-	DrawString("Forty-Two", 0, 0, 0xFF00FF00);
+	drawString("Forty-Two", 0, 0, 0xFF00FF00);
 }
