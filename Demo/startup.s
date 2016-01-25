@@ -130,22 +130,3 @@ PUT32:
 GET32:
     ldr r0,[r0]
     bx lr
-
-.globl regs
-regs:
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
-	.word 0x42424242
