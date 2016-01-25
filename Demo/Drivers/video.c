@@ -3,8 +3,8 @@
 
 #define CHAR_WIDTH 6
 #define CHAR_HEIGHT 8
-#define SCREEN_X 1920
-#define SCREEN_Y 1080
+int SCREEN_WIDTH;
+int SCREEN_HEIGHT;
 
 extern void PUT32(int dest, int src);
 extern int GET32(int src);
@@ -12,6 +12,8 @@ extern int GET32(int src);
 unsigned int mailbuffer[22] __attribute__((aligned (16)));
 unsigned int* framebuffer;
 
+//Docuentation on the mailbox functions
+//https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
 void mailboxWrite(int data_addr, int channel){
 	int mailbox = 0x3f00B880;
 	while(1){
@@ -36,8 +38,24 @@ int mailboxRead(int channel){
 }
 
 void initFB(){
-	//good docuentation on the mailbox functions
-	//https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
+	//get the display size
+	mailbuffer[0] = 8 * 4;	//mailbuffer size
+	mailbuffer[1] = 0;		//response code
+	mailbuffer[2] = 0x00040003;//test display size
+	mailbuffer[3] = 8;		//value buffer size
+	mailbuffer[4] = 0;		//Req. + value length (bytes)
+	mailbuffer[5] = 0;		//width
+	mailbuffer[6] = 0;		//height
+	mailbuffer[7] = 0; //terminate buffer
+
+	//spam mail the GPU until the response code is ok
+	while(mailbuffer[1] != 0x80000000){
+		mailboxWrite((int)mailbuffer, 8);
+		mailboxRead(8);
+	}
+
+	SCREEN_WIDTH = mailbuffer[5];
+	SCREEN_HEIGHT = mailbuffer[6];
 
 	mailbuffer[0] = 22 * 4; //mail buffer size
 	mailbuffer[1] = 0; //response code
@@ -45,14 +63,14 @@ void initFB(){
 	mailbuffer[2] = 0x00048003; //set phys display
 	mailbuffer[3] = 8; //value buffer size
 	mailbuffer[4] = 8; //Req. + value length (bytes)
-	mailbuffer[5] = SCREEN_X; //screen x
-	mailbuffer[6] = SCREEN_Y; //screen y
+	mailbuffer[5] = SCREEN_WIDTH; //screen x
+	mailbuffer[6] = SCREEN_HEIGHT; //screen y
 
 	mailbuffer[7] = 0x00048004; //set virtual display
 	mailbuffer[8] = 8; //value buffer size
 	mailbuffer[9] = 8; //Req. + value length (bytes)
-	mailbuffer[10] = SCREEN_X; //screen x
-	mailbuffer[11] = SCREEN_Y; //screen y
+	mailbuffer[10] = SCREEN_WIDTH; //screen x
+	mailbuffer[11] = SCREEN_HEIGHT; //screen y
 
 	mailbuffer[12] = 0x0048005; //set depth
 	mailbuffer[13] = 4; //value buffer size
@@ -95,7 +113,7 @@ void drawChar(unsigned char c, int x, int y, int color){
 		for (i = 0; i < CHAR_HEIGHT; i++) {
 			unsigned char temp = font[c][j];
 			if (temp & (1<<i)) {
-				framebuffer[(y + i) * SCREEN_X + (x + j)] = color;
+				framebuffer[(y + i) * SCREEN_WIDTH + (x + j)] = color;
 			}
 		}
 	}
@@ -186,11 +204,11 @@ void videotest(){
 	//If the shaded area is larger or smaller than your screen, 
 	//you have under/over scan issues. Add disable_overscan=1 to your config.txt
 	int x;
-	for(x = 0; x < SCREEN_X * SCREEN_Y; x++){
+	for(x = 0; x < SCREEN_WIDTH * SCREEN_HEIGHT; x++){
 		framebuffer[x] = 0xFF111111;
 	}
 
 	dumpDebug();
 
-	drawString("Forty-Two", SCREEN_X / 2, SCREEN_Y / 2, 0xFF00FF00);
+	drawString("Forty-Two", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0xFF00FF00);
 }
