@@ -3,9 +3,9 @@
 
 #include "Drivers/interrupts.h"
 #include "Drivers/gpio.h"
+#include "Drivers/video.h"
 
-void task1(void *pParam) {
-
+void task1() {
 	int i = 0;
 	while(1) {
 		i++;
@@ -14,8 +14,7 @@ void task1(void *pParam) {
 	}
 }
 
-void task2(void *pParam) {
-
+void task2() {
 	int i = 0;
 	while(1) {
 		i++;
