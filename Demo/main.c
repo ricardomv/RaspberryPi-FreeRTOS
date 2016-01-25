@@ -31,7 +31,7 @@ void task2() {
  *	-- Absolutely nothing wrong with this being called main(), just it doesn't have
  *	-- the same prototype as you'd see in a linux program.
  **/
-void main(void) {
+int main(void) {
 	SetGpioFunction(47, 1);			// RDY led
 
 	initFB();
