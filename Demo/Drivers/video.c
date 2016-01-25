@@ -1,9 +1,16 @@
+#include "video.h"
 #include "5x5_font.h"
+
+#define CHAR_WIDTH 6
+#define CHAR_HEIGHT 8
+#define SCREEN_X 1920
+#define SCREEN_Y 1080
+
 extern void PUT32(int dest, int src);
 extern int GET32(int src);
 
-int mailbuffer[22] __attribute__((aligned (16)));
-int* framebuffer;
+unsigned int mailbuffer[22] __attribute__((aligned (16)));
+unsigned int* framebuffer;
 
 void MailboxWrite(int data_addr, int channel){
 	int mailbox = 0x3f00B880;
@@ -38,14 +45,14 @@ void initFB(){
 	mailbuffer[2] = 0x00048003; //set phys display
 	mailbuffer[3] = 8; //value buffer size
 	mailbuffer[4] = 8; //Req. + value length (bytes)
-	mailbuffer[5] = 1920; //screen x
-	mailbuffer[6] = 1080; //screen y
+	mailbuffer[5] = SCREEN_X; //screen x
+	mailbuffer[6] = SCREEN_Y; //screen y
 
 	mailbuffer[7] = 0x00048004; //set virtual display
 	mailbuffer[8] = 8; //value buffer size
 	mailbuffer[9] = 8; //Req. + value length (bytes)
-	mailbuffer[10] = 1920; //screen x
-	mailbuffer[11] = 1080; //screen y
+	mailbuffer[10] = SCREEN_X; //screen x
+	mailbuffer[11] = SCREEN_Y; //screen y
 
 	mailbuffer[12] = 0x0048005; //set depth
 	mailbuffer[13] = 4; //value buffer size
@@ -69,13 +76,43 @@ void initFB(){
 
 	//the framebuffer pointer is returned as a physical address,
 	//subtracting 0xC0000000 converts it to virtual/
-	framebuffer = mailbuffer[19] - 0xC0000000;
+	framebuffer = (unsigned int*)(mailbuffer[19] - 0xC0000000);
+}
+
+void DrawChar(unsigned char c, int x, int y, int color) {
+	int i, j;
+
+	// Convert the character to an index
+	c = c & 0x7F;
+	if (c < ' ') {
+		c = 0;
+	} else {
+		c -= ' ';
+	}
+
+	// Draw pixels
+	for (j = 0; j < CHAR_WIDTH; j++) {
+		for (i = 0; i < CHAR_HEIGHT; i++) {
+			unsigned char temp = font[c][j];
+			if (temp & (1<<i)) {
+				framebuffer[(y + i) * SCREEN_X + (x + j)] = color;
+			}
+		}
+	}
+}
+
+void DrawString(const char* str, int x, int y, int color) {
+	while (*str) {
+		DrawChar(*str++, x, y, color);
+		x += CHAR_WIDTH;
+	}
 }
 
 void videotest(){
 	//add disable_overscan=1 to your config.txt if you have under/over scan issues
-	int x;
-	for(x=0;x<1920*1080;x++){
-		framebuffer[x] = 0xFF00FF00;
-	}
+	/*int x;
+	for(x = 0; x < SCREEN_X * SCREEN_Y; x++){
+		framebuffer[x] = 0x00000000;
+	}*/
+	DrawString("Forty-Two", 0, 0, 0xFF00FF00);
 }
