@@ -108,11 +108,89 @@ void drawString(const char* str, int x, int y, int color){
 	}
 }
 
+//This is a macro which dumps the CPU registers to the screen
+//It MUST be a macro because a call to a function would dirty
+//the registers. So this is compiled inline where you 'call'
+//it and it saves the registers on the stack, prints them
+//and then restores them as if it had never happened.
+//SP and PC might be offset by +- 4 bytes.
+//Should probably push/pop cspr/spsr as well.
+int regs[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+char hex[16] = {'0','1','2','3','4','5','6','7',
+				'8','9','A','B','C','D','E','F'};
+unsigned char message[14] = "r#: 0x????????";
+int i;
+#define dumpDebug()										\
+	extern int regs[];									\
+	__asm volatile(										\
+		"push	{r0-r15}\n"			 					\
+		"ldr	r0, =regs		\n"						\
+		"ldr	r1, [sp]		\n"	/*r0*/				\
+		"str	r1, [r0]		\n"						\
+		"ldr	r1, [sp, #4]	\n"	/*r1*/				\
+		"str	r1, [r0, #4]	\n"						\
+		"ldr	r1, [sp, #8]	\n"	/*r2*/				\
+		"str	r1, [r0, #8]	\n"						\
+		"ldr	r1, [sp, #12]	\n"	/*r3*/				\
+		"str	r1, [r0, #12]	\n"						\
+		"ldr	r1, [sp, #16]	\n"	/*r4*/				\
+		"str	r1, [r0, #16]	\n"						\
+		"ldr	r1, [sp, #20]	\n"	/*r5*/				\
+		"str	r1, [r0, #20]	\n"						\
+		"ldr	r1, [sp, #24]	\n"	/*r6*/				\
+		"str	r1, [r0, #24]	\n"						\
+		"ldr	r1, [sp, #28]	\n"	/*r7*/				\
+		"str	r1, [r0, #28]	\n"						\
+		"ldr	r1, [sp, #32]	\n"	/*r8*/				\
+		"str	r1, [r0, #32]	\n"						\
+		"ldr	r1, [sp, #36]	\n"	/*r9*/				\
+		"str	r1, [r0, #36]	\n"						\
+		"ldr	r1, [sp, #40]	\n"	/*r10*/				\
+		"str	r1, [r0, #40]	\n"						\
+		"ldr	r1, [sp, #44]	\n"	/*r11*/				\
+		"str	r1, [r0, #44]	\n"						\
+		"ldr	r1, [sp, #48]	\n"	/*r12*/				\
+		"str	r1, [r0, #48]	\n"						\
+		"ldr	r1, [sp, #52]	\n"	/*r13*/				\
+		"str	r1, [r0, #52]	\n"						\
+		"ldr	r1, [sp, #56]	\n"	/*r14*/				\
+		"str	r1, [r0, #56]	\n"						\
+		"ldr	r1, [sp, #60]	\n"	/*r15*/				\
+		"str	r1, [r0, #60]	\n"						\
+	);													\
+	/*dump the registers r0-r12*/						\
+	for(i = 0; i < 16; i++){							\
+		message[1] = hex[i]; /*register number in hex, 	\
+		bitshift the integer and take the last 4 bits, 	\
+		then converts those to hex characters*/			\
+		message[6] = hex[(regs[i] >> 28)&0xF];			\
+		message[7] = hex[(regs[i] >> 24)&0xF];			\
+		message[8] = hex[(regs[i] >> 20)&0xF];			\
+		message[9] = hex[(regs[i] >> 16)&0xF];			\
+		message[10] = hex[(regs[i] >> 12)&0xF];			\
+		message[11] = hex[(regs[i] >> 8)&0xF];			\
+		message[12] = hex[(regs[i] >> 4)&0xF];			\
+		message[13] = hex[(regs[i] >> 0)&0xF];			\
+		message[14] = 0; /*null termination*/			\
+		drawString(message, 0, i * 8, 0xFF00FF00);		\
+	}													\
+	__asm volatile(	/*	don't pop r13 or r15*/			\
+		"pop	{r0-r12}	\n"							\
+		"add 	sp, sp, #4	\n"	/*skip r13 (sp)*/		\
+		"pop	{r14}		\n"							\
+		"add 	sp, sp, #4	\n"	/*skip r15 (pc)*/		\
+	);
+
 void videotest(){
-	//add disable_overscan=1 to your config.txt if you have under/over scan issues
-	/*int x;
+	//This loop turns on every pixel the screen size allows for.
+	//If the shaded area is larger or smaller than your screen, 
+	//you have under/over scan issues. Add disable_overscan=1 to your config.txt
+	int x;
 	for(x = 0; x < SCREEN_X * SCREEN_Y; x++){
-		framebuffer[x] = 0x00000000;
-	}*/
-	drawString("Forty-Two", 0, 0, 0xFF00FF00);
+		framebuffer[x] = 0xFF111111;
+	}
+
+	dumpDebug();
+
+	drawString("Forty-Two", SCREEN_X / 2, SCREEN_Y / 2, 0xFF00FF00);
 }
