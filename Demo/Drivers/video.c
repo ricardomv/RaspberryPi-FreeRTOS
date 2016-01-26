@@ -49,9 +49,20 @@ void initFB(){
 	mailbuffer[7] = 0; //terminate buffer
 
 	//spam mail the GPU until the response code is ok
+	int attempts = 0;
 	while(mailbuffer[1] != 0x80000000){
 		mailboxWrite((int)mailbuffer, 8);
 		mailboxRead(8);
+
+		//if it keeps failing, just set to default and move along
+		if(attempts >= 5){
+			//don't bother breaking, just fake the response
+			mailbuffer[1] = 0x80000000;
+			mailbuffer[5] = 640;
+			mailbuffer[6] = 480;
+		}
+
+		attempts++;
 	}
 
 	SCREEN_WIDTH = mailbuffer[5];
