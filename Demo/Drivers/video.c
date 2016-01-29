@@ -135,7 +135,6 @@ void drawChar(unsigned char c, int x, int y, int color){
 	//draw pixels of the character
 	for (j = 0; j < CHAR_WIDTH; j++) {
 		for (i = 0; i < CHAR_HEIGHT; i++) {
-			//unsigned char temp = font[c][j];
 			if (font[c][j] & (1<<i)) {
 				framebuffer[(y + i) * SCREEN_WIDTH + (x + j)] = color;
 			}
