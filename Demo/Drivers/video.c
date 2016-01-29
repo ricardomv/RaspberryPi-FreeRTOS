@@ -6,9 +6,11 @@
 int SCREEN_WIDTH;
 int SCREEN_HEIGHT;
 
+//direct memory get and set
 extern void PUT32(int dest, int src);
 extern int GET32(int src);
 
+//mailbuffer must be 16 byte aligned for GPU
 unsigned int mailbuffer[22] __attribute__((aligned (16)));
 unsigned int* framebuffer;
 
@@ -39,14 +41,14 @@ int mailboxRead(int channel){
 
 void initFB(){
 	//get the display size
-	mailbuffer[0] = 8 * 4;	//mailbuffer size
+	mailbuffer[0] = 8 * 4;		//mailbuffer size
 	mailbuffer[1] = 0;		//response code
-	mailbuffer[2] = 0x00040003;//test display size
+	mailbuffer[2] = 0x00040003;	//test display size
 	mailbuffer[3] = 8;		//value buffer size
 	mailbuffer[4] = 0;		//Req. + value length (bytes)
 	mailbuffer[5] = 0;		//width
 	mailbuffer[6] = 0;		//height
-	mailbuffer[7] = 0; //terminate buffer
+	mailbuffer[7] = 0;		//terminate buffer
 
 	//spam mail the GPU until the response code is ok
 	int attempts = 0;
@@ -56,7 +58,7 @@ void initFB(){
 
 		//if it keeps failing, just set to default and move along
 		if(attempts >= 5){
-			//don't bother breaking, just fake the response
+			//I don't bother breaking; just fake the response
 			mailbuffer[1] = 0x80000000;
 			mailbuffer[5] = 640;
 			mailbuffer[6] = 480;
@@ -68,34 +70,34 @@ void initFB(){
 	SCREEN_WIDTH = mailbuffer[5];
 	SCREEN_HEIGHT = mailbuffer[6];
 
-	mailbuffer[0] = 22 * 4; //mail buffer size
-	mailbuffer[1] = 0; //response code
+	mailbuffer[0] = 22 * 4;		//mail buffer size
+	mailbuffer[1] = 0;		//response code
 
-	mailbuffer[2] = 0x00048003; //set phys display
-	mailbuffer[3] = 8; //value buffer size
-	mailbuffer[4] = 8; //Req. + value length (bytes)
-	mailbuffer[5] = SCREEN_WIDTH; //screen x
-	mailbuffer[6] = SCREEN_HEIGHT; //screen y
+	mailbuffer[2] = 0x00048003;	//set phys display
+	mailbuffer[3] = 8;		//value buffer size
+	mailbuffer[4] = 8;		//Req. + value length (bytes)
+	mailbuffer[5] = SCREEN_WIDTH;	//screen x
+	mailbuffer[6] = SCREEN_HEIGHT;	//screen y
 
-	mailbuffer[7] = 0x00048004; //set virtual display
-	mailbuffer[8] = 8; //value buffer size
-	mailbuffer[9] = 8; //Req. + value length (bytes)
-	mailbuffer[10] = SCREEN_WIDTH; //screen x
+	mailbuffer[7] = 0x00048004;	//set virtual display
+	mailbuffer[8] = 8;		//value buffer size
+	mailbuffer[9] = 8;		//Req. + value length (bytes)
+	mailbuffer[10] = SCREEN_WIDTH;	//screen x
 	mailbuffer[11] = SCREEN_HEIGHT; //screen y
 
-	mailbuffer[12] = 0x0048005; //set depth
-	mailbuffer[13] = 4; //value buffer size
-	mailbuffer[14] = 4; //Req. + value length (bytes)
-	mailbuffer[15] = 32; //bits per pixel
+	mailbuffer[12] = 0x0048005;	//set depth
+	mailbuffer[13] = 4;		//value buffer size
+	mailbuffer[14] = 4;		//Req. + value length (bytes)
+	mailbuffer[15] = 32;		//bits per pixel
 	//pixel format is ARGB, 0xFF0000FF is blue at full alpha transparency
 
-	mailbuffer[16] = 0x00040001; //allocate buffer
-	mailbuffer[17] = 8; //value buffer size
-	mailbuffer[18] = 4; //Req. + value length (bytes)
-	mailbuffer[19] = 0; //framebuffer address
-	mailbuffer[20] = 0; //framebuffer size
+	mailbuffer[16] = 0x00040001;	//allocate buffer
+	mailbuffer[17] = 8;		//value buffer size
+	mailbuffer[18] = 4;		//Req. + value length (bytes)
+	mailbuffer[19] = 0;		//framebuffer address
+	mailbuffer[20] = 0;		//framebuffer size
 
-	mailbuffer[21] = 0; //terminate buffer
+	mailbuffer[21] = 0;		//terminate buffer
 
 	//spam mail the GPU until the response code is ok
 	while(mailbuffer[1] != 0x80000000){
@@ -103,11 +105,22 @@ void initFB(){
 		mailboxRead(8);
 	}
 
-	//the framebuffer pointer is returned as a physical address,
-	//subtracting 0xC0000000 converts it to virtual/
+	//https://github.com/raspberrypi/firmware/wiki/Accessing-mailboxes
+	//shift FB by 0x40000000 if L2 cache is enabled, or 0xC0000000 if disabled
 	framebuffer = (unsigned int*)(mailbuffer[19] - 0xC0000000);
 }
 
+//characters are stored in 5x5_font.h as binary (6x8 font)
+//there are 6 bytes which describe 8 pixels in a column
+//	{0x7c,	0x24,	0x24,	0x24,	0x7c,	0x00}, // A
+//						0
+//						0
+//	1	1	1	1	1	0
+//	1				1	0
+//	1				1	0
+//	1	1	1	1	1	0
+//	1				1	0
+//	1				1	0
 void drawChar(unsigned char c, int x, int y, int color){
 	int i, j;
 
@@ -119,11 +132,11 @@ void drawChar(unsigned char c, int x, int y, int color){
 		c -= ' ';
 	}
 
-	//draw pixels
+	//draw pixels of the character
 	for (j = 0; j < CHAR_WIDTH; j++) {
 		for (i = 0; i < CHAR_HEIGHT; i++) {
-			unsigned char temp = font[c][j];
-			if (temp & (1<<i)) {
+			//unsigned char temp = font[c][j];
+			if (font[c][j] & (1<<i)) {
 				framebuffer[(y + i) * SCREEN_WIDTH + (x + j)] = color;
 			}
 		}
@@ -142,8 +155,8 @@ void drawString(const char* str, int x, int y, int color){
 //the registers. So this is compiled inline where you 'call'
 //it and it saves the registers on the stack, prints them
 //and then restores them as if it had never happened.
-//SP and PC might be offset by +- 4 bytes.
-//Should probably push/pop cspr/spsr as well.
+//SP and PC might be offset by +- 4 bytes? add/sub to correct.
+//Should probably push/pop cspr/spsr if needed.
 int regs[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 char hex[16] = {'0','1','2','3','4','5','6','7',
 				'8','9','A','B','C','D','E','F'};
