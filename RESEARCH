@@ -1,26 +1,16 @@
+http://www.pebblebay.com/raspberry-pi-embedded/
+The RPI1 has:
+– A USB host controller driver for the Synopsys DesignWare USB 2.0 OTG
+controller embedded in the processor
+– A USB host stack with USB networking infrastructure
+– A device driver for LAN9512/4 Ethernet controller
+Might be similar to the RPI 2?
+
+Starting point for USB
 https://github.com/Chadderz121/csud
+
+bare metal USB driver for RPI with ARP example, uses MMU though... Do we need caching?
+https://github.com/rsta2/uspi
 
 TCP/UDP/IP RTOS
 http://www.nxp.com/files/microcontrollers/doc/app_note/AN3470.pdf
-
-bare metal USB driver for RPI
-https://github.com/rsta2/uspi
-
-The USPi library provides functions to be used by the bare metal environment to access USB devices. There are seven groups of functions which are declared in include/uspi.h:
-
-    USPi initialization
-    Keyboard
-    Mouse
-    GamePad/Joystick
-    USB Mass storage device
-    Ethernet controller
-    USB device information
-
-The bare metal environment has to provide some functions to the USPi library which are declared in include/uspios.h. There are the six groups of functions:
-
-    Memory allocation
-    Timer
-    Interrupt handling
-    Property tags
-    Logging
-    Debug support
