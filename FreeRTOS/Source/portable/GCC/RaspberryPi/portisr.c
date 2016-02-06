@@ -37,7 +37,7 @@ volatile unsigned long ulCriticalNesting = 9999UL;
 /*-----------------------------------------------------------*/
 
 /* ISR to handle manual context switches (from a call to taskYIELD()). */
-void vPortYieldProcessor( void ) __attribute__((interrupt("SWI"), naked));
+void vPortYieldProcessor( void ) __attribute__((interrupt("SWI"), naked, no_instrument_function));
 
 /* 
  * The scheduler can only be started from ARM mode, hence the inclusion of this
@@ -123,7 +123,7 @@ void vPortYieldProcessor( void )
 
 extern void irqHandler(void);
 
-void vFreeRTOS_ISR( void ) __attribute__((naked));
+void vFreeRTOS_ISR( void ) __attribute__((naked, no_instrument_function));
 void vFreeRTOS_ISR( void ) {
 	portSAVE_CONTEXT();
 	irqHandler();
@@ -138,8 +138,8 @@ void vFreeRTOS_ISR( void ) {
  */
 #ifdef THUMB_INTERWORK
 
-	void vPortDisableInterruptsFromThumb( void ) __attribute__ ((naked));
-	void vPortEnableInterruptsFromThumb( void ) __attribute__ ((naked));
+	void vPortDisableInterruptsFromThumb( void ) __attribute__ ((naked, no_instrument_function));
+	void vPortEnableInterruptsFromThumb( void ) __attribute__ ((naked, no_instrument_function));
 
 	void vPortDisableInterruptsFromThumb( void )
 	{

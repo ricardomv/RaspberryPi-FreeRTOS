@@ -1,6 +1,8 @@
 # FreeRTOS Ported to Raspberry Pi 2B
 
-This provides a very basic port of FreeRTOS to Raspberry pi 2B, now with video!
+This provides a very basic port of FreeRTOS to Raspberry pi 2B with video
+
+This current build is a halfway port of USPi, a LAN9514 USB driver
 
 ## Howto Build
 

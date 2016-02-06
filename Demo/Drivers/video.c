@@ -1,47 +1,19 @@
-#include "video.h"
-#include "5x5_font.h"
-
+#include <video.h>
+#include <mailbox.h>
+#include <5x5_font.h>
+char loaded = 0;
 #define CHAR_WIDTH 6
 #define CHAR_HEIGHT 8
 int SCREEN_WIDTH;
 int SCREEN_HEIGHT;
 
-//direct memory get and set
-extern void PUT32(int dest, int src);
-extern int GET32(int src);
-
 //mailbuffer must be 16 byte aligned for GPU
 unsigned int mailbuffer[22] __attribute__((aligned (16)));
 unsigned int* framebuffer;
 
-//Docuentation on the mailbox functions
-//https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
-void mailboxWrite(int data_addr, int channel){
-	int mailbox = 0x3f00B880;
-	while(1){
-		if((GET32(mailbox + 0x18)&0x80000000) == 0) break;
-	}
-	PUT32(mailbox + 0x20, data_addr + channel);
-	return;
-}
-
-int mailboxRead(int channel){
-	int ra;
-	int mailbox = 0x3f00B880;
-	while(1){
-		while(1){
-			ra = GET32(mailbox + 0x18);
-			if((ra&0x40000000) == 0) break;
-		}
-		ra = GET32(mailbox + 0x00);
-		if((ra&0xF) == channel) break;
-	}
-	return(ra);
-}
-
 void initFB(){
 	//get the display size
-	mailbuffer[0] = 8 * 4;		//mailbuffer size
+	/*mailbuffer[0] = 8 * 4;		//mailbuffer size
 	mailbuffer[1] = 0;		//response code
 	mailbuffer[2] = 0x00040003;	//test display size
 	mailbuffer[3] = 8;		//value buffer size
@@ -65,10 +37,10 @@ void initFB(){
 		}
 
 		attempts++;
-	}
+	}*/
 
-	SCREEN_WIDTH = mailbuffer[5];
-	SCREEN_HEIGHT = mailbuffer[6];
+	SCREEN_WIDTH = 1920;//mailbuffer[5];
+	SCREEN_HEIGHT = 1080;//mailbuffer[6];
 
 	mailbuffer[0] = 22 * 4;		//mail buffer size
 	mailbuffer[1] = 0;		//response code
@@ -110,6 +82,21 @@ void initFB(){
 	framebuffer = (unsigned int*)(mailbuffer[19] - 0xC0000000);
 }
 
+__attribute__((no_instrument_function))
+void drawPixel(unsigned int x, unsigned int y, int colour) {
+    framebuffer[y * SCREEN_WIDTH + x] = colour;
+}
+
+__attribute__((no_instrument_function))
+void drawRect(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2, int colour) {
+    unsigned int i, j = 0;
+    for(i = x1; i < x2; i++) {
+        for(j = y1; j < y2; j++) {
+            drawPixel(i, j, colour);
+        }
+    }
+}
+
 //characters are stored in 5x5_font.h as binary (6x8 font)
 //there are 6 bytes which describe 8 pixels in a column
 //	{0x7c,	0x24,	0x24,	0x24,	0x7c,	0x00}, // A
@@ -121,7 +108,8 @@ void initFB(){
 //	1	1	1	1	1	0
 //	1				1	0
 //	1				1	0
-void drawChar(unsigned char c, int x, int y, int color){
+__attribute__((no_instrument_function))
+void drawChar(unsigned char c, int x, int y, int colour){
 	int i, j;
 
 	//convert the character to an index
@@ -135,17 +123,33 @@ void drawChar(unsigned char c, int x, int y, int color){
 	//draw pixels of the character
 	for (j = 0; j < CHAR_WIDTH; j++) {
 		for (i = 0; i < CHAR_HEIGHT; i++) {
+			//unsigned char temp = font[c][j];
 			if (font[c][j] & (1<<i)) {
-				framebuffer[(y + i) * SCREEN_WIDTH + (x + j)] = color;
+				framebuffer[(y + i) * SCREEN_WIDTH + (x + j)] = colour;
 			}
 		}
 	}
 }
 
-void drawString(const char* str, int x, int y, int color){
+__attribute__((no_instrument_function))
+void drawString(const char* str, int x, int y, int colour){
 	while (*str) {
-		drawChar(*str++, x, y, color);
-		x += CHAR_WIDTH;
+		drawChar(*str++, x, y, colour);
+		x += CHAR_WIDTH; 
+	}
+}
+
+int position_x = 0;
+int position_y = 0;
+__attribute__((no_instrument_function))
+void println(const char* message, int colour){
+	//clear the line and draw the string
+	//drawRect(0, position, 420, position + 8, 0x00000000);
+	drawString(message, position_x, position_y, colour);
+	position_y = position_y + CHAR_HEIGHT + 1;
+	if(position_y > SCREEN_HEIGHT){
+		position_y = 0;
+		position_x += 142;
 	}
 }
 
@@ -159,7 +163,7 @@ void drawString(const char* str, int x, int y, int color){
 int regs[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 char hex[16] = {'0','1','2','3','4','5','6','7',
 				'8','9','A','B','C','D','E','F'};
-unsigned char message[14] = "r#: 0x????????";
+unsigned char messageh[14] = "r#: 0x????????";
 int i;
 #define dumpDebug()										\
 	extern int regs[];									\
@@ -201,19 +205,20 @@ int i;
 	);													\
 	/*dump the registers r0-r12*/						\
 	for(i = 0; i < 16; i++){							\
-		message[1] = hex[i]; /*register number in hex, 	\
+		messageh[1] = hex[i]; /*register number in hex, 	\
 		bitshift the integer and take the last 4 bits, 	\
 		then converts those to hex characters*/			\
-		message[6] = hex[(regs[i] >> 28)&0xF];			\
-		message[7] = hex[(regs[i] >> 24)&0xF];			\
-		message[8] = hex[(regs[i] >> 20)&0xF];			\
-		message[9] = hex[(regs[i] >> 16)&0xF];			\
-		message[10] = hex[(regs[i] >> 12)&0xF];			\
-		message[11] = hex[(regs[i] >> 8)&0xF];			\
-		message[12] = hex[(regs[i] >> 4)&0xF];			\
-		message[13] = hex[(regs[i] >> 0)&0xF];			\
-		message[14] = 0; /*null termination*/			\
-		drawString(message, 0, i * 8, 0xFF00FF00);		\
+		messageh[6] = hex[(regs[i] >> 28)&0xF];			\
+		messageh[7] = hex[(regs[i] >> 24)&0xF];			\
+		messageh[8] = hex[(regs[i] >> 20)&0xF];			\
+		messageh[9] = hex[(regs[i] >> 16)&0xF];			\
+		messageh[10] = hex[(regs[i] >> 12)&0xF];			\
+		messageh[11] = hex[(regs[i] >> 8)&0xF];			\
+		messageh[12] = hex[(regs[i] >> 4)&0xF];			\
+		messageh[13] = hex[(regs[i] >> 0)&0xF];			\
+		messageh[14] = 0; /*null termination*/			\
+		drawString(messageh, SCREEN_WIDTH - 100, i * 8,	\
+											0xFF00FF00);\
 	}													\
 	__asm volatile(	/*	don't pop r13 or r15*/			\
 		"pop	{r0-r12}	\n"							\
@@ -222,16 +227,37 @@ int i;
 		"add 	sp, sp, #4	\n"	/*skip r15 (pc)*/		\
 	);
 
+__attribute__((no_instrument_function))
+void printHex(const char* message, int hexi, int colour){
+	char m[42];
+	int i = 0;
+	while (*message){
+		m[i] = *message++;
+		i++;
+	}
+	//overwrite the null terminator
+	m[i + 0] = hex[(hexi >> 28)&0xF];
+	m[i + 1] = hex[(hexi >> 24)&0xF];
+	m[i + 2] = hex[(hexi >> 20)&0xF];
+	m[i + 3] = hex[(hexi >> 16)&0xF];
+	m[i + 4] = hex[(hexi >> 12)&0xF];
+	m[i + 5] = hex[(hexi >> 8)&0xF];
+	m[i + 6] = hex[(hexi >> 4)&0xF];
+	m[i + 7] = hex[(hexi >> 0)&0xF];
+	m[i + 8] = 0; //null termination
+	println(m, colour);
+}
+
 void videotest(){
 	//This loop turns on every pixel the screen size allows for.
 	//If the shaded area is larger or smaller than your screen, 
 	//you have under/over scan issues. Add disable_overscan=1 to your config.txt
-	int x;
-	for(x = 0; x < SCREEN_WIDTH * SCREEN_HEIGHT; x++){
+	for(int x = 0; x < SCREEN_WIDTH * SCREEN_HEIGHT; x++){
 		framebuffer[x] = 0xFF111111;
 	}
 
 	dumpDebug();
 
+	//division crashes the system here but not in other places it seems?
 	drawString("Forty-Two", SCREEN_WIDTH / 2 - 4.5 * CHAR_WIDTH, SCREEN_HEIGHT / 2 + CHAR_HEIGHT / 2, 0xFF00FF00);
 }

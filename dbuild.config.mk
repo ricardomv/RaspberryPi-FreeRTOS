@@ -1,7 +1,16 @@
+RASPPI	?= 2
 
-CFLAGS += -march=armv7-a -g -Wextra
+ifeq ($(strip $(RASPPI)),1)
+ARCH	?= -march=armv6j -mtune=arm1176jzf-s -mfloat-abi=hard 
+else
+ARCH	?= -march=armv7-a -mtune=cortex-a7 -mfloat-abi=hard
+endif
+
+AFLAGS ?= $(ARCH) -DRASPPI=$(RASPPI)
+CFLAGS += $(ARCH) -g -std=gnu99 -Wno-psabi -fsigned-char -DRASPPI=$(RASPPI) -finstrument-functions
 CFLAGS += -I $(BASE)FreeRTOS/Source/portable/GCC/RaspberryPi/
 CFLAGS += -I $(BASE)FreeRTOS/Source/include/
 CFLAGS += -I $(BASE)Demo/Drivers/
+CFLAGS += -I $(BASE)Demo/Drivers/lan9514/include/
 
 TOOLCHAIN=arm-none-eabi-

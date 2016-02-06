@@ -36,5 +36,39 @@ OBJECTS += $(BUILD_DIR)Demo/startup.o
 #
 OBJECTS += $(BUILD_DIR)Demo/main.o
 
+#things
+OBJECTS += $(BUILD_DIR)Demo/Drivers/mailbox.o
+OBJECTS += $(BUILD_DIR)Demo/trace.o
+
 #video stuff
 OBJECTS += $(BUILD_DIR)Demo/Drivers/video.o
+
+#smsc9514 (LAN and USB)
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/uspibind.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/arp.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/uspilibrary.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/dwhcidevice.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/dwhciregister.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/dwhcixferstagedata.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbconfigparser.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbdevice.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbdevicefactory.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbendpoint.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbrequest.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbstandardhub.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/devicenameservice.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/macaddress.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/smsc951x.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/string.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/util.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbmassdevice.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/dwhciframeschednper.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/dwhciframeschedper.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/keymap.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbkeyboard.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/dwhcirootport.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbmouse.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/dwhciframeschednsplit.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbgamepad.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/synchronize.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbstring.o

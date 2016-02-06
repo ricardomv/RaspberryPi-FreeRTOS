@@ -4,6 +4,7 @@
 #include "Drivers/interrupts.h"
 #include "Drivers/gpio.h"
 #include "Drivers/video.h"
+#include "Drivers/lan9514/arp.h"
 
 void task1() {
 	int i = 0;
@@ -24,7 +25,6 @@ void task2() {
 	}
 }
 
-
 /**
  *	This is the systems main entry, some call it a boot thread.
  *
@@ -35,14 +35,18 @@ int main(void) {
 	SetGpioFunction(47, 1);			// RDY led
 
 	initFB();
+loaded = 1;
+arp();
+loaded = 0;
 	SetGpio(47, 1);
-	videotest();
+	//videotest();
 
 	DisableInterrupts();
 	InitInterruptController();
 
 	xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
 	xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
+	//xTaskCreate(arp, "ARP", 128, NULL, 0, NULL);
 
 	vTaskStartScheduler();
 
