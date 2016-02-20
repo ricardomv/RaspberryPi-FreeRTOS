@@ -21,7 +21,7 @@
 //
 #ifndef _uspios_h
 #define _uspios_h
-
+#include <interrupts.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,13 +66,8 @@ unsigned StartKernelTimer (unsigned	        nHzDelay,	// in HZ units (see "syste
 
 void CancelKernelTimer (unsigned hTimer);
 
-//
-// Interrupt handling
-//
-typedef void TInterruptHandler (void *pParam);
-
 // USPi uses USB IRQ 9
-void ConnectInterrupt (unsigned nIRQ, TInterruptHandler *pHandler, void *pParam);
+void ConnectInterrupt (unsigned nIRQ, FN_INTERRUPT_HANDLER pHandler, void *pParam);
 
 //
 // Property tags (ARM -> VC)

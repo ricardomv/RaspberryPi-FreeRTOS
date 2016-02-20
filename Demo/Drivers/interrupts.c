@@ -5,7 +5,7 @@
 
 #include "interrupts.h"
 #include "bcm2835_intc.h"
-
+#include "video.h"
 static INTERRUPT_VECTOR g_VectorTable[BCM2835_INTC_TOTAL_IRQ];
 
 
@@ -27,10 +27,12 @@ static volatile BCM2835_INTC_REGS * const pRegs = (BCM2835_INTC_REGS *) (BCM2835
 /**
  *	Enables all IRQ's in the CPU's CPSR register.
  **/
+__attribute__((no_instrument_function))
 static void irqEnable() {
 	__asm volatile("cpsie i" : : : "memory");
 }
 
+__attribute__((no_instrument_function))
 static void irqDisable() {
 	__asm volatile("cpsid i" : : : "memory");
 }
@@ -45,6 +47,7 @@ static void irqDisable() {
  *	It is based on the assembler code found in the Broadcom datasheet.
  *
  **/
+__attribute__((no_instrument_function))
 void irqHandler() {
 	register unsigned long ulMaskedStatus;
 	register unsigned long irqNumber;
@@ -68,6 +71,12 @@ void irqHandler() {
 		irqNumber = 32 + 31;
 	}
 
+	/* Bit 11 in IRQBasic indicates interrupt 9 (USB)*/
+	else if(ulMaskedStatus & 0x800) {
+			g_VectorTable[9].pfnHandler(9, g_VectorTable[9].pParam);
+			return;
+	}
+
 	else {
 		// No interrupt avaialbe, so just return.
 		return;
@@ -81,7 +90,7 @@ void irqHandler() {
 	g_VectorTable[irqNumber].pfnHandler(irqNumber, g_VectorTable[irqNumber].pParam);
 }
 
-
+__attribute__((no_instrument_function))
 static void stubHandler(int nIRQ, void *pParam) {
 	/**
 	 *	Actually if we get here, we should probably disable the IRQ,
@@ -90,6 +99,7 @@ static void stubHandler(int nIRQ, void *pParam) {
 	 **/
 }
 
+__attribute__((no_instrument_function))
 int InitInterruptController() {
 	int i;
 	for(i = 0; i < BCM2835_INTC_TOTAL_IRQ; i++) {
@@ -99,8 +109,7 @@ int InitInterruptController() {
 	return 0;
 }
 
-
-
+__attribute__((no_instrument_function))
 int RegisterInterrupt(int nIRQ, FN_INTERRUPT_HANDLER pfnHandler, void *pParam) {
 	if(nIRQ<0 || nIRQ>71)
 		return -1;
@@ -114,10 +123,10 @@ int RegisterInterrupt(int nIRQ, FN_INTERRUPT_HANDLER pfnHandler, void *pParam) {
 	return 0;
 }
 
+__attribute__((no_instrument_function))
 int EnableInterrupt(int nIRQ) {
 	/* Datasheet says "All other bits are unaffected", and I'm counting on that. */
 	unsigned int mask=1<<(nIRQ%32);
-
 	if(nIRQ >=0 && nIRQ <=31) {
 		pRegs->Enable1 = mask;
 	} else
@@ -128,10 +137,10 @@ int EnableInterrupt(int nIRQ) {
 		pRegs->EnableBasic = mask;
 	} else
 		return -1;
-
 	return 0;
 }
 
+__attribute__((no_instrument_function))
 int DisableInterrupt(int nIRQ) {
 	/* Datasheet says "All other bits are unaffected", and I'm counting on that. */
 	unsigned int mask=1<<(nIRQ%32);
@@ -150,11 +159,13 @@ int DisableInterrupt(int nIRQ) {
 	return 0;
 }
 
+__attribute__((no_instrument_function))
 int EnableInterrupts() {
 	irqEnable();
 	return 0;
 }
 
+__attribute__((no_instrument_function))
 int DisableInterrupts() {
 	irqDisable();
 	return 0;

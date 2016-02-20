@@ -1,15 +1,8 @@
-//
-// main.c
-//
 #include "arp.h"
-//#include <uspienv.h>
 #include <uspi.h>
 #include <uspios.h>
 #include <uspi/uspilibrary.h>
-//#include <uspienv/util.h>
-//#include <uspienv/macros.h>
-//#include <uspienv/types.h>
-
+#include "video.h"
 #define	OWN_IP_ADDRESS		{192, 168, 0, 250}	// must be a valid IP address on your LAN
 
 #define MAC_ADDRESS_SIZE	6
@@ -54,26 +47,15 @@ static const u8 OwnIPAddress[] = OWN_IP_ADDRESS;
 static const char FromSample[] = "sample";
 
 int arp(){
-	/*if (!USPiEnvInitialize ())
-	{
-		return EXIT_HALT;
-	}*/
-
 	if (!USPiInitialize ())
 	{
 		LogWrite (FromSample, LOG_ERROR, "Cannot initialize USPi");
-
-		//USPiEnvClose ();
-
 		return 0;
 	}
 
 	if (!USPiEthernetAvailable ())
 	{
 		LogWrite (FromSample, LOG_ERROR, "Ethernet device not found");
-
-		//USPiEnvClose ();
-
 		return 0;
 	}
 
@@ -122,15 +104,18 @@ int arp(){
 
 		// prepare reply packet
 		memcpy (pARPFrame->Ethernet.MACReceiver, pARPFrame->ARP.HWAddressSender, MAC_ADDRESS_SIZE);
-		memcpy (pARPFrame->Ethernet.MACSender, OwnMACAddress, MAC_ADDRESS_SIZE);
+		//memcpy (pARPFrame->Ethernet.MACSender, OwnMACAddress, MAC_ADDRESS_SIZE);
+		for(int i = 0; i < MAC_ADDRESS_SIZE; i++){ pARPFrame->Ethernet.MACSender[i] = OwnMACAddress[i]; }
+		
 		pARPFrame->ARP.nOPCode = BE (ARP_REPLY);
 
 		memcpy (pARPFrame->ARP.HWAddressTarget, pARPFrame->ARP.HWAddressSender, MAC_ADDRESS_SIZE);
 		memcpy (pARPFrame->ARP.ProtocolAddressTarget, pARPFrame->ARP.ProtocolAddressSender, IP_ADDRESS_SIZE);
 
-		memcpy (pARPFrame->ARP.HWAddressSender, OwnMACAddress, MAC_ADDRESS_SIZE);
+		//memcpy (pARPFrame->ARP.HWAddressSender, OwnMACAddress, MAC_ADDRESS_SIZE);
+		for(int i = 0; i < MAC_ADDRESS_SIZE; i++){ pARPFrame->ARP.HWAddressSender[i] = OwnMACAddress[i]; }
 		memcpy (pARPFrame->ARP.ProtocolAddressSender, OwnIPAddress, IP_ADDRESS_SIZE);
-		
+
 		if (!USPiSendFrame (pARPFrame, sizeof *pARPFrame))
 		{
 			LogWrite (FromSample, LOG_ERROR, "USPiSendFrame failed");
@@ -140,8 +125,5 @@ int arp(){
 
 		LogWrite (FromSample, LOG_NOTICE, "ARP reply successfully sent");
 	}
-
-	//USPiEnvClose ();
-
 	return 0;
 }
