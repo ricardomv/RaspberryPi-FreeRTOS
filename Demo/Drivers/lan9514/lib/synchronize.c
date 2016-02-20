@@ -21,18 +21,18 @@
 #include <uspi/types.h>
 #include <uspi/assert.h>
 
-#define	EnableInterrupts()	__asm volatile ("cpsie i")
-#define	DisableInterrupts()	__asm volatile ("cpsid i")
+#define	EnableInterrupts2()	__asm volatile ("cpsie i")
+#define	DisableInterrupts2()	__asm volatile ("cpsid i")
 
 static volatile unsigned s_nCriticalLevel = 0;
 static volatile boolean s_bWereEnabled;
-
+__attribute__((no_instrument_function))
 void uspi_EnterCritical (void)
 {
 	u32 nFlags;
 	asm volatile ("mrs %0, cpsr" : "=r" (nFlags));
 
-	DisableInterrupts ();
+	DisableInterrupts2 ();
 
 	if (s_nCriticalLevel++ == 0)
 	{
@@ -41,7 +41,7 @@ void uspi_EnterCritical (void)
 
 	DataMemBarrier ();
 }
-
+__attribute__((no_instrument_function))
 void uspi_LeaveCritical (void)
 {
 	DataMemBarrier ();
@@ -51,7 +51,7 @@ void uspi_LeaveCritical (void)
 	{
 		if (s_bWereEnabled)
 		{
-			EnableInterrupts ();
+			EnableInterrupts2 ();
 		}
 	}
 }

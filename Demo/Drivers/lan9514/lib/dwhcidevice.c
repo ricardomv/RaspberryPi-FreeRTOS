@@ -27,7 +27,7 @@
 #include <uspi/bcm2835.h>
 #include <uspi/synchronize.h>
 #include <uspi/assert.h>
-
+#include "video.h"
 #define ARM_IRQ_USB		9		// for ConnectInterrupt()
 
 #define DEVICE_ID_USB_HCD	3		// for SetPowerStateOn()
@@ -79,7 +79,7 @@ boolean DWHCIDeviceTransferStageAsync (TDWHCIDevice *pThis, TUSBRequest *pURB, b
 void DWHCIDeviceStartTransaction (TDWHCIDevice *pThis, TDWHCITransferStageData *pStageData);
 void DWHCIDeviceStartChannel (TDWHCIDevice *pThis, TDWHCITransferStageData *pStageData);
 void DWHCIDeviceChannelInterruptHandler (TDWHCIDevice *pThis, unsigned nChannel);
-void DWHCIDeviceInterruptHandler (void *pParam);
+void DWHCIDeviceInterruptHandler (int nIRQ, void *pParam);
 void DWHCIDeviceTimerHandler (unsigned hTimer, void *pParam, void *pContext);
 unsigned DWHCIDeviceAllocateChannel (TDWHCIDevice *pThis);
 void DWHCIDeviceFreeChannel (TDWHCIDevice *pThis, unsigned nChannel);
@@ -137,7 +137,7 @@ boolean DWHCIDeviceInitialize (TDWHCIDevice *pThis)
 	DWHCIRegisterRead (&AHBConfig);
 	DWHCIRegisterAnd (&AHBConfig, ~DWHCI_CORE_AHB_CFG_GLOBALINT_MASK);
 	DWHCIRegisterWrite (&AHBConfig);
-	
+
 	ConnectInterrupt (ARM_IRQ_USB, DWHCIDeviceInterruptHandler, pThis);
 
 	if (!DWHCIDeviceInitCore (pThis))
@@ -147,7 +147,7 @@ boolean DWHCIDeviceInitialize (TDWHCIDevice *pThis)
 		_DWHCIRegister (&VendorId);
 		return FALSE;
 	}
-
+	
 	DWHCIDeviceEnableGlobalInterrupts (pThis);
 	
 	if (!DWHCIDeviceInitHost (pThis))
@@ -176,7 +176,7 @@ boolean DWHCIDeviceInitialize (TDWHCIDevice *pThis)
 		_DWHCIRegister (&VendorId);
 		return TRUE;
 	}
-
+	
 	DataMemBarrier ();
 
 	_DWHCIRegister (&AHBConfig);
@@ -334,7 +334,7 @@ boolean DWHCIDeviceSubmitBlockingRequest (TDWHCIDevice *pThis, TUSBRequest *pURB
 			return FALSE;
 		}
 	}
-
+	
 	DataMemBarrier ();
 
 	return TRUE;
@@ -725,6 +725,10 @@ boolean DWHCIDeviceTransferStage (TDWHCIDevice *pThis, TUSBRequest *pURB, boolea
 
 	while (pThis->m_bWaiting)
 	{
+//println("waiting", 0xFFFFFFFF);
+//__asm volatile ("dsb" ::: "memory");
+//__asm volatile ("dmb" ::: "memory");
+//__asm volatile("cpsie i" : : : "memory");
 		// do nothing
 	}
 
@@ -1172,7 +1176,8 @@ void DWHCIDeviceChannelInterruptHandler (TDWHCIDevice *pThis, unsigned nChannel)
 	}
 }
 
-void DWHCIDeviceInterruptHandler (void *pParam)
+__attribute__((no_instrument_function))
+void DWHCIDeviceInterruptHandler (int nIRQ, void *pParam)
 {
 	TDWHCIDevice *pThis = (TDWHCIDevice *) pParam;
 	assert (pThis != 0);
@@ -1408,7 +1413,8 @@ void DWHCIDeviceDumpRegister (TDWHCIDevice *pThis, const char *pName, u32 nAddre
 
 	DataMemBarrier ();
 
-	LogWrite (FromDWHCI, LOG_DEBUG, "0x%08X %s", DWHCIRegisterRead (&Register), pName);
+	//LogWrite (FromDWHCI, LOG_DEBUG, "0x%08X %s", DWHCIRegisterRead (&Register), pName);
+printHex(pName, DWHCIRegisterRead (&Register), 0xFFFFFFFF);
 
 	_DWHCIRegister (&Register);
 }

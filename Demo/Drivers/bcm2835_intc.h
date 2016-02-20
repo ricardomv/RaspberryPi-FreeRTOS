@@ -1,8 +1,6 @@
 #ifndef _BCM2835_INTC_H_
 #define _BCM2835_INTC_H_
 
-//#include "bcm2835.h"
-
 #define BCM2835_INTC_TOTAL_IRQ		64 + 8
 
 #define BCM2835_BASE_INTC			(0x3f00B200)
