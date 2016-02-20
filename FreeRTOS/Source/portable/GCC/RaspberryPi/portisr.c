@@ -47,7 +47,7 @@ void vPortISRStartFirstTask( void );
 /*-----------------------------------------------------------*/
 
 int g_bStarted = 0;
-
+__attribute__((no_instrument_function))
 void vPortISRStartFirstTask( void )
 {
 
@@ -86,7 +86,7 @@ void vPortISRStartFirstTask( void )
  * saved from the ISR or that saved from a call to vPortYieldProcessor.
  */
 
-
+__attribute__((no_instrument_function))
 void vPortYieldProcessor( void )
 {
 	/* Within an IRQ ISR the link register has an offset from the true return 
@@ -125,9 +125,9 @@ extern void irqHandler(void);
 
 void vFreeRTOS_ISR( void ) __attribute__((naked, no_instrument_function));
 void vFreeRTOS_ISR( void ) {
-	portSAVE_CONTEXT();
+	//portSAVE_CONTEXT();
 	irqHandler();
-	portRESTORE_CONTEXT();	
+	//portRESTORE_CONTEXT();
 }
 
 /*
@@ -169,6 +169,7 @@ void vFreeRTOS_ISR( void ) {
 different optimisation levels.  The interrupt flags can therefore not always
 be saved to the stack.  Instead the critical section nesting level is stored
 in a variable, which is then saved as part of the stack context. */
+__attribute__((no_instrument_function))
 void vPortEnterCritical( void )
 {
 	/* Disable interrupts as per portDISABLE_INTERRUPTS(); 							*/
@@ -184,7 +185,7 @@ void vPortEnterCritical( void )
 	portENTER_CRITICAL() has been called. */
 	ulCriticalNesting++;
 }
-
+__attribute__((no_instrument_function))
 void vPortExitCritical( void )
 {
 	if( ulCriticalNesting > portNO_CRITICAL_NESTING )

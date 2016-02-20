@@ -19,31 +19,27 @@
 //
 #include <uspios.h>
 #include <FreeRTOS.h>
-#include <interrupts.h>
 #include <task.h>
 #include <video.h>
 #include <mailbox.h>
 
-//#include <uspienv/timer.h>
-//#include <uspienv/interrupt.h>
-//#include <uspienv/bcmpropertytags.h>
-//#include <uspienv/logger.h>
-//#include <uspienv/debug.h>
-//#include <uspienv/util.h>
-//#include <uspienv/assert.h>
-
+__attribute__((no_instrument_function))
 void MsDelay (unsigned nMilliSeconds){
-println("msDelay", 0xFFFFFFFF);
-	//vTaskDelay(nMilliSeconds);//TimerMsDelay (TimerGet (), nMilliSeconds);
+	volatile int* timeStamp = (int*)0x3f003004;
+	int stop = *timeStamp + nMilliSeconds * 1000;
+	while (*timeStamp < stop) __asm__("nop");
+	//vTaskDelay(nMilliSeconds);
 }
 
+__attribute__((no_instrument_function))
 void usDelay (unsigned nMicroSeconds){
-println("usDelay", 0xFFFFFFFF);
-	//vTaskDelay(1);//TimerusDelay (TimerGet (), nMicroSeconds);
+	volatile int* timeStamp = (int*)0x3f003004;
+	int stop = *timeStamp + nMicroSeconds;
+	while (*timeStamp < stop) __asm__("nop");
 }
 
 unsigned StartKernelTimer (unsigned nDelay, TKernelTimerHandler *pHandler, void *pParam, void *pContext){
-println("StartKernelTimer", 0xFFFFFFFF);
+	println("StartKernelTimer", 0xFFFFFFFF);
 	return 1;//TimerStartKernelTimer (TimerGet (), nDelay, pHandler, pParam, pContext);
 }
 
@@ -51,9 +47,12 @@ void CancelKernelTimer (unsigned hTimer){
 	println("CancelKernelTimer", 0xFFFFFFFF);//TimerCancelKernelTimer (TimerGet (), hTimer);
 }
 
-void ConnectInterrupt (unsigned nIRQ, TInterruptHandler *pfnHandler, void *pParam){
-	//InterruptSystemConnectIRQ (InterruptSystemGet (), nIRQ, pHandler, pParam);
+//void ConnectInterrupt (unsigned nIRQ, TInterruptHandler *pfnHandler, void *pParam){
+void ConnectInterrupt (unsigned nIRQ, FN_INTERRUPT_HANDLER pfnHandler, void *pParam){
+	//DisableInterrupts();
 	RegisterInterrupt(nIRQ, pfnHandler, pParam);
+	EnableInterrupt(nIRQ);
+	//EnableInterrupts();
 }
 
 int SetPowerStateOn (unsigned nDeviceId){
@@ -64,9 +63,9 @@ int SetPowerStateOn (unsigned nDeviceId){
 	mailbuffer[1] = 0;			//response code
 	mailbuffer[2] = 0x00028001;	//set power state
 	mailbuffer[3] = 8;			//value buffer size
-	mailbuffer[4] = 0;			//Req. + value length (bytes)
-	mailbuffer[5] = nDeviceId;	//device id
-	mailbuffer[6] = 1;			//state
+	mailbuffer[4] = 8;			//Req. + value length (bytes)
+	mailbuffer[5] = nDeviceId;	//device id 3
+	mailbuffer[6] = 3;			//state
 	mailbuffer[7] = 0;			//terminate buffer
 
 	//spam mail until the response code is ok
@@ -75,20 +74,22 @@ int SetPowerStateOn (unsigned nDeviceId){
 		mailboxRead(8);
 	}
 
+	if(!(mailbuffer[6] & 1) || (mailbuffer[6] & 2)) return 0;
 	return 1;
 }
 
 int GetMACAddress (unsigned char Buffer[6]){
 	unsigned int mailbuffer[7] __attribute__((aligned (16)));
 
-	//set power state
-	mailbuffer[0] = 7 * 4;		//mailbuffer size
+	//get MAC
+	mailbuffer[0] = 8 * 4;		//mailbuffer size
 	mailbuffer[1] = 0;			//response code
 	mailbuffer[2] = 0x00010003;	//get mac
 	mailbuffer[3] = 6;			//value buffer size
-	mailbuffer[4] = 0;			//Req. + value length (bytes)
-	mailbuffer[5] = 0;			//12 34 56 AB CD EF 00 00
-	mailbuffer[6] = 0;			//terminate buffer
+	mailbuffer[4] = 6;			//Req. + value length (bytes)
+	mailbuffer[5] = 0;			//12 34 56 AB
+	mailbuffer[6] = 0;			//12 34 00 00
+	mailbuffer[7] = 0;			//terminate buffer
 
 	//spam mail until the response code is ok
 	while(mailbuffer[1] != 0x80000000){
@@ -96,29 +97,18 @@ int GetMACAddress (unsigned char Buffer[6]){
 		mailboxRead(8);
 	}
 
-	memcpy(Buffer, *(&mailbuffer + 24), 6);
-char str[7] = "aaaaaa";
-strncpy(str, Buffer, 6);
-println(str, 0xFFFFFFFF);
-println("did it worked?", 0xFFFFFFFF);
-
-	/*TBcmPropertyTags Tags;
-	BcmPropertyTags (&Tags);
-	TPropertyTagMACAddress MACAddress;
-	if (!BcmPropertyTagsGetTag (&Tags, PROPTAG_GET_MAC_ADDRESS, &MACAddress, sizeof MACAddress, 0))
-	{
-		_BcmPropertyTags (&Tags);
-
-		return 0;
-	}
-
-	memcpy (Buffer, MACAddress.Address, 6);
-	
-	_BcmPropertyTags (&Tags);*/
+	//memcpy(Buffer, *(&mailbuffer + 24), 6);
+	Buffer[0] = (char)(mailbuffer[5] >> 0);
+	Buffer[1] = (char)(mailbuffer[5] >> 8);
+	Buffer[2] = (char)(mailbuffer[5] >> 16);
+	Buffer[3] = (char)(mailbuffer[5] >> 24);
+	Buffer[4] = (char)(mailbuffer[6] >> 0);
+	Buffer[5] = (char)(mailbuffer[6] >> 8);
 
 	return 1;
 }
 
+__attribute__((no_instrument_function))
 void LogWrite (const char *pSource, unsigned Severity, const char *pMessage, ...)
 {
 	/*va_list var;
@@ -132,25 +122,36 @@ void LogWrite (const char *pSource, unsigned Severity, const char *pMessage, ...
 
 #ifndef NDEBUG
 
-void uspi_assertion_failed (const char *pExpr, const char *pFile, unsigned nLine)
-{
-	println("assert failed", 0xFFFFFFFF);//assertion_failed (pExpr, pFile, nLine);
-	//while(1){;} //system failure
+void uspi_assertion_failed (const char *pExpr, const char *pFile, unsigned nLine){	
+	println(pExpr, 0xFFFFFFFF);
+	println(pFile, 0xFFFFFFFF);
+	printHex("", nLine, 0xFFFFFFFF);
+	while(1){;} //system failure
 }
 
-void DebugHexdump (const void *pBuffer, unsigned nBufLen, const char *pSource)
-{
-	//debug_hexdump (pBuffer, nBufLen, pSource);
+void DebugHexdump (const void *pBuffer, unsigned nBufLen, const char *pSource){
+	println("DebugHexdump", 0xFFFFFFFF);//debug_hexdump (pBuffer, nBufLen, pSource);
 }
 
 #endif
 
 void* malloc(unsigned nSize){
-	return pvPortMalloc(nSize);
+//vPortEnterCritical();
+	void* temp = pvPortMalloc(nSize);
+__asm volatile ("dsb" ::: "memory");
+__asm volatile ("dmb" ::: "memory");
+__asm volatile("cpsie i" : : : "memory");
+//vPortExitCritical();
+	return temp;
 }
 
 void free(void* pBlock){
+//vPortEnterCritical();
 	vPortFree(pBlock);
+__asm volatile ("dsb" ::: "memory");
+__asm volatile ("dmb" ::: "memory");
+__asm volatile("cpsie i" : : : "memory");
+//vPortExitCritical();
 }
 
 void *memset(void *s, int c, size_t n){

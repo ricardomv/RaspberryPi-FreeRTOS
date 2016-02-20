@@ -7,6 +7,8 @@ char loaded = 0;
 int SCREEN_WIDTH;
 int SCREEN_HEIGHT;
 
+void enablelogging(){ loaded = 1;}
+
 //mailbuffer must be 16 byte aligned for GPU
 unsigned int mailbuffer[22] __attribute__((aligned (16)));
 unsigned int* framebuffer;
@@ -80,6 +82,7 @@ void initFB(){
 	//https://github.com/raspberrypi/firmware/wiki/Accessing-mailboxes
 	//shift FB by 0x40000000 if L2 cache is enabled, or 0xC0000000 if disabled
 	framebuffer = (unsigned int*)(mailbuffer[19] - 0xC0000000);
+	loaded = 1;
 }
 
 __attribute__((no_instrument_function))
@@ -143,13 +146,25 @@ int position_x = 0;
 int position_y = 0;
 __attribute__((no_instrument_function))
 void println(const char* message, int colour){
-	//clear the line and draw the string
-	//drawRect(0, position, 420, position + 8, 0x00000000);
+	if(loaded == 0) return; //if video isn't loaded don't bother
 	drawString(message, position_x, position_y, colour);
 	position_y = position_y + CHAR_HEIGHT + 1;
 	if(position_y > SCREEN_HEIGHT){
-		position_y = 0;
-		position_x += 142;
+		if(position_x + 2 * (SCREEN_WIDTH / 8) > SCREEN_WIDTH){
+
+			/*volatile int* timeStamp = (int*)0x3f003004;
+			int stop = *timeStamp + 5000 * 1000;
+			while (*timeStamp < stop) __asm__("nop");*/
+
+			for(int x = 0; x < SCREEN_WIDTH * SCREEN_HEIGHT; x++){
+				framebuffer[x] = 0xFF000000;
+			}
+			position_y = 0;
+			position_x = 0;
+		}else{
+			position_y = 0;
+			position_x += SCREEN_WIDTH / 8;
+		}
 	}
 }
 
@@ -229,21 +244,24 @@ int i;
 
 __attribute__((no_instrument_function))
 void printHex(const char* message, int hexi, int colour){
-	char m[42];
+if(loaded == 0) return; //if video isn't loaded don't bother
+	char hex2[16] = {'0','1','2','3','4','5','6','7',
+					'8','9','A','B','C','D','E','F'};
+	char m[200];
 	int i = 0;
 	while (*message){
 		m[i] = *message++;
 		i++;
 	}
 	//overwrite the null terminator
-	m[i + 0] = hex[(hexi >> 28)&0xF];
-	m[i + 1] = hex[(hexi >> 24)&0xF];
-	m[i + 2] = hex[(hexi >> 20)&0xF];
-	m[i + 3] = hex[(hexi >> 16)&0xF];
-	m[i + 4] = hex[(hexi >> 12)&0xF];
-	m[i + 5] = hex[(hexi >> 8)&0xF];
-	m[i + 6] = hex[(hexi >> 4)&0xF];
-	m[i + 7] = hex[(hexi >> 0)&0xF];
+	m[i + 0] = hex2[(hexi >> 28)&0xF];
+	m[i + 1] = hex2[(hexi >> 24)&0xF];
+	m[i + 2] = hex2[(hexi >> 20)&0xF];
+	m[i + 3] = hex2[(hexi >> 16)&0xF];
+	m[i + 4] = hex2[(hexi >> 12)&0xF];
+	m[i + 5] = hex2[(hexi >> 8)&0xF];
+	m[i + 6] = hex2[(hexi >> 4)&0xF];
+	m[i + 7] = hex2[(hexi >> 0)&0xF];
 	m[i + 8] = 0; //null termination
 	println(m, colour);
 }
