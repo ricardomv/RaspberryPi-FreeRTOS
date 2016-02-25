@@ -149,12 +149,12 @@ void println(const char* message, int colour){
 	if(loaded == 0) return; //if video isn't loaded don't bother
 	drawString(message, position_x, position_y, colour);
 	position_y = position_y + CHAR_HEIGHT + 1;
-	if(position_y > SCREEN_HEIGHT){
+	if(position_y >= SCREEN_HEIGHT){
 		if(position_x + 2 * (SCREEN_WIDTH / 8) > SCREEN_WIDTH){
 
-			/*volatile int* timeStamp = (int*)0x3f003004;
-			int stop = *timeStamp + 5000 * 1000;
-			while (*timeStamp < stop) __asm__("nop");*/
+			//volatile int* timeStamp = (int*)0x3f003004;
+			//int stop = *timeStamp + 30000 * 1000;
+			//while (*timeStamp < stop) __asm__("nop");
 
 			for(int x = 0; x < SCREEN_WIDTH * SCREEN_HEIGHT; x++){
 				framebuffer[x] = 0xFF000000;

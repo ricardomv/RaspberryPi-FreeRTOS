@@ -136,22 +136,17 @@ void DebugHexdump (const void *pBuffer, unsigned nBufLen, const char *pSource){
 #endif
 
 void* malloc(unsigned nSize){
-//vPortEnterCritical();
+	uspi_EnterCritical();
+if(loaded == 2) println("malloc", 0xFFFFFFFF);
 	void* temp = pvPortMalloc(nSize);
-__asm volatile ("dsb" ::: "memory");
-__asm volatile ("dmb" ::: "memory");
-__asm volatile("cpsie i" : : : "memory");
-//vPortExitCritical();
+	uspi_LeaveCritical();
 	return temp;
 }
 
 void free(void* pBlock){
-//vPortEnterCritical();
+	uspi_EnterCritical();
 	vPortFree(pBlock);
-__asm volatile ("dsb" ::: "memory");
-__asm volatile ("dmb" ::: "memory");
-__asm volatile("cpsie i" : : : "memory");
-//vPortExitCritical();
+	uspi_LeaveCritical();
 }
 
 void *memset(void *s, int c, size_t n){

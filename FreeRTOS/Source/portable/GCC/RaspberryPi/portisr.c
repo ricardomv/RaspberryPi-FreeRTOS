@@ -169,7 +169,7 @@ void vFreeRTOS_ISR( void ) {
 different optimisation levels.  The interrupt flags can therefore not always
 be saved to the stack.  Instead the critical section nesting level is stored
 in a variable, which is then saved as part of the stack context. */
-__attribute__((no_instrument_function))
+//__attribute__((no_instrument_function))
 void vPortEnterCritical( void )
 {
 	/* Disable interrupts as per portDISABLE_INTERRUPTS(); 							*/
@@ -185,7 +185,7 @@ void vPortEnterCritical( void )
 	portENTER_CRITICAL() has been called. */
 	ulCriticalNesting++;
 }
-__attribute__((no_instrument_function))
+//__attribute__((no_instrument_function))
 void vPortExitCritical( void )
 {
 	if( ulCriticalNesting > portNO_CRITICAL_NESTING )

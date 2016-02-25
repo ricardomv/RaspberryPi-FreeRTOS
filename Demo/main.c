@@ -27,6 +27,7 @@ void task2() {
 
 void task3() {
 loaded = 2;
+	println("starting", 0xFFFFFFFF);
 	arp();
 	println("DONE", 0xFFFFFFFF);
 	while(1) {;}
@@ -46,11 +47,13 @@ int main(void) {
 
 	DisableInterrupts();
 	InitInterruptController();
-loaded = 2;
+//loaded = 2;
 arp();
 //vFreeRTOS_ISR contexts switches must be turned off
 //pThis->m_nMaxPacketSize = *(char*)((char*)pDesc + 5) * 256 + *(char*)((char*)pDesc + 4);
-
+//trace crit sections disabled
+//cpsie i in transferstage
+//sudo arping -I interface 192.168.0.250
 	//xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
 	//xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
 	//xTaskCreate(task3, "ARP", 128, NULL, 0, NULL);

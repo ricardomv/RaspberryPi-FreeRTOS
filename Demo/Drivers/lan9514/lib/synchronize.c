@@ -21,8 +21,8 @@
 #include <uspi/types.h>
 #include <uspi/assert.h>
 
-#define	EnableInterrupts2()	__asm volatile ("cpsie i")
-#define	DisableInterrupts2()	__asm volatile ("cpsid i")
+#define	EnableInterrupts2()	__asm volatile ("cpsie i" : : : "memory")
+#define	DisableInterrupts2() __asm volatile ("cpsid i" : : : "memory")
 
 static volatile unsigned s_nCriticalLevel = 0;
 static volatile boolean s_bWereEnabled;
@@ -30,7 +30,7 @@ __attribute__((no_instrument_function))
 void uspi_EnterCritical (void)
 {
 	u32 nFlags;
-	asm volatile ("mrs %0, cpsr" : "=r" (nFlags));
+	__asm volatile ("mrs %0, cpsr" : "=r" (nFlags));
 
 	DisableInterrupts2 ();
 
@@ -76,7 +76,7 @@ void uspi_CleanAndInvalidateDataCacheRange (u32 nAddress, u32 nLength)
 
 	while (1)
 	{
-		asm volatile ("mcr p15, 0, %0, c7, c14,  1" : : "r" (nAddress) : "memory");
+		__asm volatile ("mcr p15, 0, %0, c7, c14,  1" : : "r" (nAddress) : "memory");
 
 		if (nLength < DATA_CACHE_LINE_LENGTH)
 		{

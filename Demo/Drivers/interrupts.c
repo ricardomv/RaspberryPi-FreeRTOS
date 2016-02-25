@@ -78,7 +78,7 @@ void irqHandler() {
 	}
 
 	else {
-		// No interrupt avaialbe, so just return.
+		// No interrupt available, so just return.
 		return;
 	}
 
