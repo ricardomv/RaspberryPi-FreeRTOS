@@ -152,9 +152,9 @@ void println(const char* message, int colour){
 	if(position_y >= SCREEN_HEIGHT){
 		if(position_x + 2 * (SCREEN_WIDTH / 8) > SCREEN_WIDTH){
 
-			//volatile int* timeStamp = (int*)0x3f003004;
-			//int stop = *timeStamp + 30000 * 1000;
-			//while (*timeStamp < stop) __asm__("nop");
+			volatile int* timeStamp = (int*)0x3f003004;
+			int stop = *timeStamp + 5000 * 1000;
+			while (*timeStamp < stop) __asm__("nop");
 
 			for(int x = 0; x < SCREEN_WIDTH * SCREEN_HEIGHT; x++){
 				framebuffer[x] = 0xFF000000;
@@ -180,7 +180,7 @@ char hex[16] = {'0','1','2','3','4','5','6','7',
 				'8','9','A','B','C','D','E','F'};
 unsigned char messageh[14] = "r#: 0x????????";
 int i;
-#define dumpDebug()										\
+#define dumpDebug_macro()								\
 	extern int regs[];									\
 	__asm volatile(										\
 		"push	{r0-r15}\n"			 					\
@@ -218,22 +218,21 @@ int i;
 		"ldr	r1, [sp, #60]	\n"	/*r15*/				\
 		"str	r1, [r0, #60]	\n"						\
 	);													\
-	/*dump the registers r0-r12*/						\
+	/*dump the registers r0-r15*/						\
 	for(i = 0; i < 16; i++){							\
-		messageh[1] = hex[i]; /*register number in hex, 	\
+		messageh[1] = hex[i]; /*register number in hex, \
 		bitshift the integer and take the last 4 bits, 	\
 		then converts those to hex characters*/			\
 		messageh[6] = hex[(regs[i] >> 28)&0xF];			\
 		messageh[7] = hex[(regs[i] >> 24)&0xF];			\
 		messageh[8] = hex[(regs[i] >> 20)&0xF];			\
 		messageh[9] = hex[(regs[i] >> 16)&0xF];			\
-		messageh[10] = hex[(regs[i] >> 12)&0xF];			\
+		messageh[10] = hex[(regs[i] >> 12)&0xF];		\
 		messageh[11] = hex[(regs[i] >> 8)&0xF];			\
 		messageh[12] = hex[(regs[i] >> 4)&0xF];			\
 		messageh[13] = hex[(regs[i] >> 0)&0xF];			\
 		messageh[14] = 0; /*null termination*/			\
-		drawString(messageh, SCREEN_WIDTH - 100, i * 8,	\
-											0xFF00FF00);\
+		println(messageh, 0xFFFFFFFF);\
 	}													\
 	__asm volatile(	/*	don't pop r13 or r15*/			\
 		"pop	{r0-r12}	\n"							\
@@ -241,6 +240,9 @@ int i;
 		"pop	{r14}		\n"							\
 		"add 	sp, sp, #4	\n"	/*skip r15 (pc)*/		\
 	);
+
+void dumpDebug(void)__attribute__((naked, no_instrument_function));
+void dumpDebug(void){dumpDebug_macro();}
 
 __attribute__((no_instrument_function))
 void printHex(const char* message, int hexi, int colour){

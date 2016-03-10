@@ -11,6 +11,7 @@ OBJECTS += $(BUILD_DIR)FreeRTOS/Source/croutine.o
 OBJECTS += $(BUILD_DIR)FreeRTOS/Source/list.o
 OBJECTS += $(BUILD_DIR)FreeRTOS/Source/queue.o
 OBJECTS += $(BUILD_DIR)FreeRTOS/Source/tasks.o
+OBJECTS += $(BUILD_DIR)FreeRTOS/Source/event_groups.o
 
 #
 #	Interrupt Manager & GPIO Drivers
@@ -39,6 +40,7 @@ OBJECTS += $(BUILD_DIR)Demo/main.o
 #things
 OBJECTS += $(BUILD_DIR)Demo/Drivers/mailbox.o
 OBJECTS += $(BUILD_DIR)Demo/trace.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/mem.o
 
 #video stuff
 OBJECTS += $(BUILD_DIR)Demo/Drivers/video.o
@@ -72,3 +74,16 @@ OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/dwhciframeschednsplit.o
 OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbgamepad.o
 OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/synchronize.o
 OBJECTS += $(BUILD_DIR)Demo/Drivers/lan9514/lib/usbstring.o
+
+#freeRTOS-TCP
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/FreeRTOS_ARP.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/FreeRTOS_DHCP.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/FreeRTOS_DNS.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/FreeRTOS_IP.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/FreeRTOS_Sockets.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/FreeRTOS_Stream_Buffer.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/FreeRTOS_TCP_IP.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/FreeRTOS_TCP_WIN.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/FreeRTOS_UDP_IP.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/portable/BufferManagement/BufferAllocation_2.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/FreeRTOS-Plus-TCP/portable/NetworkInterface/NetworkInterface.o

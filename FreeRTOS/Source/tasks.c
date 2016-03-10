@@ -1716,6 +1716,86 @@ portTickType xTimeToWake;
 }
 /*-----------------------------------------------------------*/
 
+/* The item value of the event list item is normally used to hold the priority
+of the task to which it belongs (coded to allow it to be held in reverse
+priority order).  However, it is occasionally borrowed for other purposes.  It
+is important its value is not updated due to a task priority change while it is
+being used for another purpose.  The following bit definition is used to inform
+the scheduler that the value should not be changed - in which case it is the
+responsibility of whichever module is using the value to ensure it gets set back
+to its original value when it is released. */
+#if configUSE_16_BIT_TICKS == 1
+	#define taskEVENT_LIST_ITEM_VALUE_IN_USE	0x8000U
+#else
+	#define taskEVENT_LIST_ITEM_VALUE_IN_USE	0x80000000UL
+#endif
+
+void vTaskPlaceOnUnorderedEventList( xList * pxEventList, const portTickType xItemValue, const portTickType xTicksToWait )
+{
+portTickType xTimeToWake;
+
+	configASSERT( pxEventList );
+
+	/* THIS FUNCTION MUST BE CALLED WITH THE SCHEDULER SUSPENDED.  It is used by
+	the event groups implementation. */
+	configASSERT( uxSchedulerSuspended != 0 );
+
+	/* Store the item value in the event list item.  It is safe to access the
+	event list item here as interrupts won't access the event list item of a
+	task that is not in the Blocked state. */
+	listSET_LIST_ITEM_VALUE( &( pxCurrentTCB->xEventListItem ), xItemValue | taskEVENT_LIST_ITEM_VALUE_IN_USE );
+
+	/* Place the event list item of the TCB at the end of the appropriate event
+	list.  It is safe to access the event list here because it is part of an
+	event group implementation - and interrupts don't access event groups
+	directly (instead they access them indirectly by pending function calls to
+	the task level). */
+	vListInsertEnd( pxEventList, &( pxCurrentTCB->xEventListItem ) );
+
+	/* The task must be removed from the ready list before it is added to the
+	blocked list.  Exclusive access can be assured to the ready list as the
+	scheduler is locked. */
+	if( vListRemove( &( pxCurrentTCB->xGenericListItem ) ) == ( unsigned portBASE_TYPE ) 0 )
+	{
+		/* The current task must be in a ready list, so there is no need to
+		check, and the port reset macro can be called directly. */
+		//portRESET_READY_PRIORITY( pxCurrentTCB->uxPriority, uxTopReadyPriority );
+	}
+	else
+	{
+		//mtCOVERAGE_TEST_MARKER();
+	}
+
+	#if ( INCLUDE_vTaskSuspend == 1 )
+	{
+		if( xTicksToWait == portMAX_DELAY )
+		{
+			/* Add the task to the suspended task list instead of a delayed task
+			list to ensure it is not woken by a timing event.  It will block
+			indefinitely. */
+			vListInsertEnd( &xSuspendedTaskList, &( pxCurrentTCB->xGenericListItem ) );
+		}
+		else
+		{
+			/* Calculate the time at which the task should be woken if the event
+			does not occur.  This may overflow but this doesn't matter, the
+			kernel will manage it correctly. */
+			xTimeToWake = xTickCount + xTicksToWait;
+			prvAddCurrentTaskToDelayedList( xTimeToWake );
+		}
+	}
+	#else /* INCLUDE_vTaskSuspend */
+	{
+			/* Calculate the time at which the task should be woken if the event does
+			not occur.  This may overflow but this doesn't matter, the kernel
+			will manage it correctly. */
+			xTimeToWake = xTickCount + xTicksToWait;
+			prvAddCurrentTaskToDelayedList( xTimeToWake );
+	}
+	#endif /* INCLUDE_vTaskSuspend */
+}
+/*-----------------------------------------------------------*/
+
 #if configUSE_TIMERS == 1
 __attribute__((no_instrument_function))
 	void vTaskPlaceOnEventListRestricted( const xList * const pxEventList, portTickType xTicksToWait )
@@ -1791,6 +1871,51 @@ portBASE_TYPE xReturn;
 		the calling task to know if it should force a context
 		switch now. */
 		xReturn = pdTRUE;
+	}
+	else
+	{
+		xReturn = pdFALSE;
+	}
+
+	return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+portBASE_TYPE xTaskRemoveFromUnorderedEventList( xListItem * pxEventListItem, const portTickType xItemValue )
+{
+tskTCB *pxUnblockedTCB;
+portBASE_TYPE xReturn;
+
+	/* THIS FUNCTION MUST BE CALLED WITH THE SCHEDULER SUSPENDED.  It is used by
+	the event flags implementation. */
+	configASSERT( uxSchedulerSuspended != pdFALSE );
+
+	/* Store the new item value in the event list. */
+	listSET_LIST_ITEM_VALUE( pxEventListItem, xItemValue | taskEVENT_LIST_ITEM_VALUE_IN_USE );
+
+	/* Remove the event list form the event flag.  Interrupts do not access
+	event flags. */
+	pxUnblockedTCB = ( tskTCB * ) listGET_LIST_ITEM_OWNER( pxEventListItem );
+	configASSERT( pxUnblockedTCB );
+	( void ) vListRemove( pxEventListItem );
+
+	/* Remove the task from the delayed list and add it to the ready list.  The
+	scheduler is suspended so interrupts will not be accessing the ready
+	lists. */
+	( void ) vListRemove( &( pxUnblockedTCB->xGenericListItem ) );
+	prvAddTaskToReadyQueue( pxUnblockedTCB );
+
+	if( pxUnblockedTCB->uxPriority > pxCurrentTCB->uxPriority )
+	{
+		/* Return true if the task removed from the event list has
+		a higher priority than the calling task.  This allows
+		the calling task to know if it should force a context
+		switch now. */
+		xReturn = pdTRUE;
+
+		/* Mark that a yield is pending in case the user is not using the
+		"xHigherPriorityTaskWoken" parameter to an ISR safe FreeRTOS function. */
+		xMissedYield = pdTRUE;
 	}
 	else
 	{
@@ -2508,6 +2633,17 @@ void vTaskExitCritical( void )
 #endif
 /*-----------------------------------------------------------*/
 
+portTickType uxTaskResetEventItemValue( void )
+{
+portTickType uxReturn;
 
+	uxReturn = listGET_LIST_ITEM_VALUE( &( pxCurrentTCB->xEventListItem ) );
 
+	/* Reset the event list item to its normal value - so it can be used with
+	queues and semaphores. */
+	listSET_LIST_ITEM_VALUE( &( pxCurrentTCB->xEventListItem ), ( ( portTickType ) configMAX_PRIORITIES - ( portTickType ) pxCurrentTCB->uxPriority ) ); /*lint !e961 MISRA exception as the casts are only redundant for some ports. */
+
+	return uxReturn;
+}
+/*-----------------------------------------------------------*/
 

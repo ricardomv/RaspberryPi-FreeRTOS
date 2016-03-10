@@ -22,6 +22,7 @@
 #include <task.h>
 #include <video.h>
 #include <mailbox.h>
+#include <mem.h>
 
 __attribute__((no_instrument_function))
 void MsDelay (unsigned nMilliSeconds){
@@ -137,7 +138,7 @@ void DebugHexdump (const void *pBuffer, unsigned nBufLen, const char *pSource){
 
 void* malloc(unsigned nSize){
 	uspi_EnterCritical();
-if(loaded == 2) println("malloc", 0xFFFFFFFF);
+//if(loaded == 2) println("malloc", 0xFFFFFFFF);
 	void* temp = pvPortMalloc(nSize);
 	uspi_LeaveCritical();
 	return temp;
@@ -147,40 +148,4 @@ void free(void* pBlock){
 	uspi_EnterCritical();
 	vPortFree(pBlock);
 	uspi_LeaveCritical();
-}
-
-void *memset(void *s, int c, size_t n){
-    unsigned char* p=s;
-    while(n--)
-        *p++ = (unsigned char)c;
-    return s;
-}
-
-int memcmp(const void* s1, const void* s2, size_t n){
-    const unsigned char *p1 = s1, *p2 = s2;
-    while(n--)
-        if( *p1 != *p2 )
-            return *p1 - *p2;
-        else
-            p1++,p2++;
-    return 0;
-}
-
-void *memcpy(void *dest, const void *src, size_t n){
-    char *dp = dest;
-    const char *sp = src;
-    while (n--)
-        *dp++ = *sp++;
-    return dest;
-}
-
-char *strncpy(char *dest, const char *src, size_t n){
-    char *ret = dest;
-    do {
-        if (!n--)
-            return ret;
-    } while (*dest++ = *src++);
-    while (n--)
-        *dest++ = 0;
-    return ret;
 }

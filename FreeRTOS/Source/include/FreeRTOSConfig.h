@@ -79,6 +79,8 @@
  * See http://www.freertos.org/a00110.html.
  *----------------------------------------------------------*/
 
+#define configUSE_MUTEXES 1
+#define configUSE_COUNTING_SEMAPHORES 1
 #define configUSE_PREEMPTION		1
 #define configUSE_IDLE_HOOK			0
 #define configUSE_TICK_HOOK			0
@@ -107,6 +109,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskSuspend			1
 #define INCLUDE_vTaskDelayUntil			1
 #define INCLUDE_vTaskDelay				1
+#define INCLUDE_xTaskGetCurrentTaskHandle 1
 
 /* This is the raw value as per the Cortex-M3 NVIC.  Values can be 255
 (lowest) to 0 (1?) (highest). */

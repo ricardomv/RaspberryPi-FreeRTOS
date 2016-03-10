@@ -261,6 +261,38 @@ xList * const pxConstList = ( pxList );													\
 #define listLIST_IS_INITIALISED( pxList ) ( ( pxList )->xListEnd.xItemValue == portMAX_DELAY )
 
 /*
+ * Return the list item at the head of the list.
+ *
+ * \page listGET_HEAD_ENTRY listGET_HEAD_ENTRY
+ * \ingroup LinkedList
+ */
+#define listGET_HEAD_ENTRY( pxList )	( ( ( pxList )->xListEnd ).pxNext )
+
+/*
+ * Return the list item at the head of the list.
+ *
+ * \page listGET_NEXT listGET_NEXT
+ * \ingroup LinkedList
+ */
+#define listGET_NEXT( pxListItem )	( ( pxListItem )->pxNext )
+
+/*
+ * Return the list item that marks the end of the list
+ *
+ * \page listGET_END_MARKER listGET_END_MARKER
+ * \ingroup LinkedList
+ */
+#define listGET_END_MARKER( pxList )	( ( xListItem const * ) ( &( ( pxList )->xListEnd ) ) )
+
+/*
+ * Return the list a list item is contained within (referenced from).
+ *
+ * @param pxListItem The list item being queried.
+ * @return A pointer to the List_t object that references the pxListItem
+ */
+#define listLIST_ITEM_CONTAINER( pxListItem ) ( ( pxListItem )->pvContainer )
+
+/*
  * Must be called before a list is used!  This initialises all the members
  * of the list structure and inserts the xListEnd item into the list as a
  * marker to the back of the list.
@@ -327,7 +359,7 @@ void vListInsertEnd( xList *pxList, xListItem *pxNewListItem );
  * \page vListRemove vListRemove
  * \ingroup LinkedList
  */
-void vListRemove( xListItem *pxItemToRemove );
+unsigned portBASE_TYPE vListRemove( xListItem *pxItemToRemove );
 
 #ifdef __cplusplus
 }

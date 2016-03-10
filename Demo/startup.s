@@ -2,6 +2,7 @@
 .extern __bss_start
 .extern __bss_end
 .extern vFreeRTOS_ISR
+.extern vFreeRTOS_ISR_KLUDGE
 .extern vPortYieldProcessor
 .extern DisableInterrupts
 .extern main
@@ -30,7 +31,7 @@ swi_handler:        .word vPortYieldProcessor
 prefetch_handler:   .word prefetch_abort
 data_handler:       .word data_abort
 unused_handler:     .word unused
-irq_handler:        .word vFreeRTOS_ISR
+irq_handler:        .word irq
 fiq_handler:        .word fiq
 
 reset:
@@ -101,7 +102,8 @@ zero_loop:
 	
 	;@ 	mov	sp,#0x1000000
 	b main									;@ We're ready?? Lets start main execution!
-	.section .text
+
+.section .text
 
 undefined_instruction:
 	b undefined_instruction
@@ -114,6 +116,17 @@ data_abort:
 
 unused:
 	b unused
+
+.global kludge
+kludge:	.word 0
+irq:
+	push {r0}
+	ldr r0, kludge
+	cmp r0, #0
+	pop {r0}
+	bne vFreeRTOS_ISR
+	bl irqHandler
+	mov pc, lr
 
 fiq:
 	b fiq

@@ -107,12 +107,10 @@ void uspi_assertion_failed (const char *pExpr, const char *pFile, unsigned nLine
 void DebugHexdump (const void *pBuffer, unsigned nBufLen, const char *pSource /* = 0 */);
 
 //memory functions
-void* malloc(unsigned nSize);
-void free(void* pBlock);
-void *memset(void *s, int c, unsigned int n);
+/*void *memset(void *s, int c, unsigned int n);
 int memcmp(const void* s1, const void* s2, unsigned int n);
 void *memcpy(void *dest, const void *src, unsigned int n);
-char *strncpy(char *dest, const char *src, unsigned int n);
+char *strncpy(char *dest, const char *src, unsigned int n);*/
 
 #endif
 

@@ -3,6 +3,8 @@
 #include <uspios.h>
 #include <uspi/uspilibrary.h>
 #include "video.h"
+#include <mem.h>
+
 #define	OWN_IP_ADDRESS		{192, 168, 0, 250}	// must be a valid IP address on your LAN
 
 #define MAC_ADDRESS_SIZE	6
@@ -46,24 +48,35 @@ static const u8 OwnIPAddress[] = OWN_IP_ADDRESS;
 
 static const char FromSample[] = "sample";
 
-int arp(){
-	if (!USPiInitialize ())
-	{
+extern int kludge;
+void initasdf(){
+	kludge = 0;
+
+	loaded = 2;
+	if (!USPiInitialize ()){
 		LogWrite (FromSample, LOG_ERROR, "Cannot initialize USPi");
-		return 0;
+		return;
 	}
 
-	if (!USPiEthernetAvailable ())
-	{
+	if (!USPiEthernetAvailable ()){
 		LogWrite (FromSample, LOG_ERROR, "Ethernet device not found");
-		return 0;
+		return;
 	}
+
+	kludge = 1;
+}
+
+int arp(){
+//vFreeRTOS_ISR context switches must be turned off
+//cpsie i in transferstage
+//sudo arping -I interface 192.168.0.250
 
 	u8 OwnMACAddress[MAC_ADDRESS_SIZE];
 	USPiGetMACAddress (OwnMACAddress);
 
 	while (1)
 	{
+		//vTaskDelay(500);
 		u8 Buffer[USPI_FRAME_BUFFER_SIZE];
 		unsigned nFrameLength;
 		if (!USPiReceiveFrame (Buffer, &nFrameLength))

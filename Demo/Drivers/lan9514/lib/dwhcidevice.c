@@ -1179,7 +1179,6 @@ void DWHCIDeviceChannelInterruptHandler (TDWHCIDevice *pThis, unsigned nChannel)
 __attribute__((no_instrument_function))
 void DWHCIDeviceInterruptHandler (int nIRQ, void *pParam)
 {
-if(loaded == 2) println("DWHCIDeviceInterruptHandler_in", 0xFFFFFFFF);
 	TDWHCIDevice *pThis = (TDWHCIDevice *) pParam;
 	assert (pThis != 0);
 
@@ -1237,7 +1236,6 @@ if(loaded == 2) println("DWHCIDeviceInterruptHandler_in", 0xFFFFFFFF);
 	DataMemBarrier ();
 	
 	_DWHCIRegister (&IntStatus);
-if(loaded == 2) println("DWHCIDeviceInterruptHandler_out", 0xFFFFFFFF);
 }
 
 void DWHCIDeviceTimerHandler (unsigned hTimer, void *pParam, void *pContext)
