@@ -1,10 +1,10 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
-#include "Drivers/interrupts.h"
-#include "Drivers/gpio.h"
-#include "Drivers/video.h"
-#include "Drivers/lan9514/arp.h"
+#include "interrupts.h"
+#include "gpio.h"
+#include "video.h"
+#include "lan9514/arp.h"
 
 void task1() {
 	int i = 0;
@@ -52,10 +52,10 @@ int main(void) {
 	DisableInterrupts();
 	InitInterruptController();
 
-	initUSBEthernet()
-//extern int kludge;
-//kludge = 1;
-//arp();
+	initUSBEthernet();
+extern int kludge;
+kludge = 1;
+arp();
 	//xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
 	//xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
 	xTaskCreate(arpTask, "ARP", 128, NULL, 0, NULL);

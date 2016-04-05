@@ -32,6 +32,13 @@ const portTickType ulMaxBlockTime = pdMS_TO_TICKS( 100 );
 	}
 }
 
+portBASE_TYPE xNetworkInterfaceInitialise(){
+	vTaskSuspendAll();
+	initUSBEthernet();
+	xTaskResumeAll();
+	return pdPASS;
+}
+
 portBASE_TYPE xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor, portBASE_TYPE bReleaseAfterSend ){
 	int usPHYLinkStatus = 42;
 	if( ( usPHYLinkStatus & 4 ) != 0 ){

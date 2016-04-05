@@ -10,8 +10,8 @@ AFLAGS ?= $(ARCH) -DRASPPI=$(RASPPI)
 CFLAGS += $(ARCH) -g -std=gnu99 -Wno-psabi -fsigned-char -DRASPPI=$(RASPPI) -nostdlib -Wno-implicit -finstrument-functions
 CFLAGS += -I $(BASE)FreeRTOS/Source/portable/GCC/RaspberryPi/
 CFLAGS += -I $(BASE)FreeRTOS/Source/include/
-CFLAGS += -I $(BASE)Demo/Drivers/
-CFLAGS += -I $(BASE)Demo/Drivers/lan9514/include/
-CFLAGS += -I $(BASE)Demo/Drivers/FreeRTOS-Plus-TCP/include/
+CFLAGS += -I $(BASE)Drivers/
+CFLAGS += -I $(BASE)Drivers/lan9514/include/
+CFLAGS += -I $(BASE)Drivers/FreeRTOS-Plus-TCP/include/
 
 TOOLCHAIN=arm-none-eabi-

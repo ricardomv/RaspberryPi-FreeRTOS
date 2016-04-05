@@ -4,7 +4,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
-#include <Drivers/interrupts.h>
+#include <interrupts.h>
 
 /* Constants required to setup the task context. */
 #define portINITIAL_SPSR						( ( portSTACK_TYPE ) 0x1f ) /* System mode, ARM mode, interrupts enabled. */
