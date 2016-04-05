@@ -52,6 +52,8 @@ void uspi_LeaveCritical (void)
 		if (s_bWereEnabled)
 		{
 			EnableInterrupts2 ();
+		}else{
+			DisableInterrupts2();
 		}
 	}
 }

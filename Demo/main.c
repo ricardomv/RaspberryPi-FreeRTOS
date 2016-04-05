@@ -25,6 +25,17 @@ void task2() {
 	}
 }
 
+void arpTask() {
+	//loaded = 2;
+	arp();
+	/*
+	 *	We should never get here, but just in case something goes wrong,
+	 *	we'll place the CPU into a safe loop.
+	 */
+	if(loaded != 0) println("arpTask_failed", 0xFFFFFFFF);
+	while(1) {;}
+}
+
 /**
  *	This is the systems main entry, some call it a boot thread.
  *
@@ -41,11 +52,13 @@ int main(void) {
 	DisableInterrupts();
 	InitInterruptController();
 
-	initasdf();//xNetworkInterfaceInitialise();
-
+	initUSBEthernet()
+//extern int kludge;
+//kludge = 1;
+//arp();
 	//xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
 	//xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
-	xTaskCreate(arp(), "ARP", 128, NULL, 0, NULL);
+	xTaskCreate(arpTask, "ARP", 128, NULL, 0, NULL);
 
 	vTaskStartScheduler();
 

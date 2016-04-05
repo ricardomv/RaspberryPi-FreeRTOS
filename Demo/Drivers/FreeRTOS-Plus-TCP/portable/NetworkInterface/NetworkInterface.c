@@ -32,20 +32,6 @@ const portTickType ulMaxBlockTime = pdMS_TO_TICKS( 100 );
 	}
 }
 
-portBASE_TYPE xNetworkInterfaceInitialise( void ){
-	if( xEMACTaskHandle == NULL ){
-		if (!USPiInitialize ()) return 0;
-
-		if (!USPiEthernetAvailable ()) return 0;
-
-		/* The handler task is created at the highest possible priority to
-		ensure the interrupt handler can return directly to it. */
-		xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, &xEMACTaskHandle );
-		configASSERT( xEMACTaskHandle );
-	}
-	return pdPASS;
-}
-
 portBASE_TYPE xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor, portBASE_TYPE bReleaseAfterSend ){
 	int usPHYLinkStatus = 42;
 	if( ( usPHYLinkStatus & 4 ) != 0 ){

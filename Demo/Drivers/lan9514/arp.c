@@ -49,10 +49,9 @@ static const u8 OwnIPAddress[] = OWN_IP_ADDRESS;
 static const char FromSample[] = "sample";
 
 extern int kludge;
-void initasdf(){
-	kludge = 0;
+void initUSBEthernet(){
+	kludge = 1;
 
-	loaded = 2;
 	if (!USPiInitialize ()){
 		LogWrite (FromSample, LOG_ERROR, "Cannot initialize USPi");
 		return;
@@ -63,14 +62,11 @@ void initasdf(){
 		return;
 	}
 
-	kludge = 1;
+	kludge = 0;
 }
 
 int arp(){
-//vFreeRTOS_ISR context switches must be turned off
-//cpsie i in transferstage
 //sudo arping -I interface 192.168.0.250
-
 	u8 OwnMACAddress[MAC_ADDRESS_SIZE];
 	USPiGetMACAddress (OwnMACAddress);
 
@@ -119,7 +115,7 @@ int arp(){
 		memcpy (pARPFrame->Ethernet.MACReceiver, pARPFrame->ARP.HWAddressSender, MAC_ADDRESS_SIZE);
 		//memcpy (pARPFrame->Ethernet.MACSender, OwnMACAddress, MAC_ADDRESS_SIZE);
 		for(int i = 0; i < MAC_ADDRESS_SIZE; i++){ pARPFrame->Ethernet.MACSender[i] = OwnMACAddress[i]; }
-		
+
 		pARPFrame->ARP.nOPCode = BE (ARP_REPLY);
 
 		memcpy (pARPFrame->ARP.HWAddressTarget, pARPFrame->ARP.HWAddressSender, MAC_ADDRESS_SIZE);

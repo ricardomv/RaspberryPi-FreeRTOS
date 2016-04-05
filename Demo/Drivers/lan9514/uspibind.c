@@ -142,6 +142,7 @@ void* malloc(unsigned nSize){
 	void* temp = pvPortMalloc(nSize);
 	uspi_LeaveCritical();
 	return temp;
+
 }
 
 void free(void* pBlock){

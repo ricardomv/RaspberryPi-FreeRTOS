@@ -124,9 +124,8 @@ irq:
 	ldr r0, kludge
 	cmp r0, #0
 	pop {r0}
-	bne vFreeRTOS_ISR
-	bl irqHandler
-	mov pc, lr
+	bne kludge_ISR
+	b vFreeRTOS_ISR
 
 fiq:
 	b fiq

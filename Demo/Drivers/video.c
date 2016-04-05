@@ -147,6 +147,12 @@ int position_y = 0;
 __attribute__((no_instrument_function))
 void println(const char* message, int colour){
 	if(loaded == 0) return; //if video isn't loaded don't bother
+
+	int nFlags;
+	__asm volatile ("mrs %0, cpsr" : "=r" (nFlags));
+	char s_bWereEnabled = nFlags & 0x80 ? 0 : 1; 
+	if(s_bWereEnabled) __asm volatile ("cpsid i" : : : "memory");
+
 	drawString(message, position_x, position_y, colour);
 	position_y = position_y + CHAR_HEIGHT + 1;
 	if(position_y >= SCREEN_HEIGHT){
@@ -166,6 +172,8 @@ void println(const char* message, int colour){
 			position_x += SCREEN_WIDTH / 8;
 		}
 	}
+
+	if(s_bWereEnabled) __asm volatile ("cpsie i" : : : "memory");
 }
 
 //This is a macro which dumps the CPU registers to the screen

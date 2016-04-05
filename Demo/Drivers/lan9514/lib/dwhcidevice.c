@@ -723,10 +723,6 @@ boolean DWHCIDeviceTransferStage (TDWHCIDevice *pThis, TUSBRequest *pURB, boolea
 		return FALSE;
 	}
 
-//__asm volatile ("dsb" ::: "memory");
-//__asm volatile ("dmb" ::: "memory");*/
-__asm volatile("cpsie i" : : : "memory");
-
 	while (pThis->m_bWaiting)
 	{
 		// do nothing
@@ -982,7 +978,7 @@ void DWHCIDeviceChannelInterruptHandler (TDWHCIDevice *pThis, unsigned nChannel)
 
 		TDWHCIRegister ChanInterrupt;
 		DWHCIRegister (&ChanInterrupt, DWHCI_HOST_CHAN_INT (nChannel));
-
+if(loaded != 0) printHex("_DWHCI_HOST_CHAN_INT ", DWHCIRegisterRead (&ChanInterrupt), 0xFFFFFFFF);
 		// restart halted transaction
 		if (DWHCIRegisterRead (&ChanInterrupt) == DWHCI_HOST_CHAN_INT_HALTED)
 		{
@@ -1015,8 +1011,8 @@ void DWHCIDeviceChannelInterruptHandler (TDWHCIDevice *pThis, unsigned nChannel)
 		nStatus = DWHCITransferStageDataGetTransactionStatus (pStageData);
 		if (nStatus & DWHCI_HOST_CHAN_INT_ERROR_MASK)
 		{
-			LogWrite (FromDWHCI, LOG_ERROR, "Transaction failed (status 0x%X)", nStatus);
-
+			LogWrite (FromDWHCI, LOG_ERROR, "Transaction failed 1 (status 0x%X)", nStatus);
+if(loaded != 0) printHex("DWHCI_HOST_CHAN_INT ", nStatus, 0xFFFFFFFF);
 			USBRequestSetStatus (pURB, 0);
 		}
 		else if (   (nStatus & (DWHCI_HOST_CHAN_INT_NAK | DWHCI_HOST_CHAN_INT_NYET))
@@ -1057,7 +1053,7 @@ void DWHCIDeviceChannelInterruptHandler (TDWHCIDevice *pThis, unsigned nChannel)
 		    || (nStatus & DWHCI_HOST_CHAN_INT_NAK)
 		    || (nStatus & DWHCI_HOST_CHAN_INT_NYET))
 		{
-			LogWrite (FromDWHCI, LOG_ERROR, "Transaction failed (status 0x%X)", nStatus);
+			LogWrite (FromDWHCI, LOG_ERROR, "Transaction failed 2 (status 0x%X)", nStatus);
 
 			USBRequestSetStatus (pURB, 0);
 
@@ -1090,7 +1086,7 @@ void DWHCIDeviceChannelInterruptHandler (TDWHCIDevice *pThis, unsigned nChannel)
 		nStatus = DWHCITransferStageDataGetTransactionStatus (pStageData);
 		if (nStatus & DWHCI_HOST_CHAN_INT_ERROR_MASK)
 		{
-			LogWrite (FromDWHCI, LOG_ERROR, "Transaction failed (status 0x%X)", nStatus);
+			LogWrite (FromDWHCI, LOG_ERROR, "Transaction failed 3 (status 0x%X)", nStatus);
 
 			USBRequestSetStatus (pURB, 0);
 
@@ -1177,8 +1173,10 @@ void DWHCIDeviceChannelInterruptHandler (TDWHCIDevice *pThis, unsigned nChannel)
 }
 
 __attribute__((no_instrument_function))
-void DWHCIDeviceInterruptHandler (int nIRQ, void *pParam)
-{
+void DWHCIDeviceInterruptHandler (int nIRQ, void *pParam){
+	char l = loaded;
+	if(l == 2) loaded = 1;
+
 	TDWHCIDevice *pThis = (TDWHCIDevice *) pParam;
 	assert (pThis != 0);
 
@@ -1236,6 +1234,7 @@ void DWHCIDeviceInterruptHandler (int nIRQ, void *pParam)
 	DataMemBarrier ();
 	
 	_DWHCIRegister (&IntStatus);
+	if(l == 2) loaded = 2;
 }
 
 void DWHCIDeviceTimerHandler (unsigned hTimer, void *pParam, void *pContext)

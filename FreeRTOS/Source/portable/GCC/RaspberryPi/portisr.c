@@ -125,51 +125,22 @@ extern void irqHandler(void);
 #include <video.h>
 void vFreeRTOS_ISR( void ) __attribute__((naked, no_instrument_function));
 void vFreeRTOS_ISR( void ) {												
-//	extern volatile void * volatile pxCurrentTCB;
-//	extern volatile unsigned portLONG ulCriticalNesting;
-//	/* Push R0 as we are going to use the register. */
-//	__asm volatile (
-//	"STMDB	SP!, {R0}												\n\t"
-//	/* Set R0 to point to the task stack pointer. */
-//	"STMDB	SP,{SP}^	\n\t"	/* ^ means get the user mode SP value. */
-//	/*"NOP															\n\t" */
-//	"SUB	SP, SP, #4												\n\t"
-//	"LDMIA	SP!,{R0}												\n\t"
-//	/* Push the return address onto the stack. */
-//);
-//if(loaded != 0) printHex("LR: ", 0xFFFFFFFF);
-//__asm volatile (
-//	"STMDB	R0!, {LR}												\n\t"
-//	/* Now we have saved LR we can use it instead of R0. */
-//	"MOV	LR, R0													\n\t"
-//	/* Pop R0 so we can save it onto the system mode stack. */
-//	"LDMIA	SP!, {R0}												\n\t"
-//	/* Push all the system mode registers onto the task stack. */
-//	"STMDB	LR,{R0-LR}^												\n\t"
-//	"NOP															\n\t"
-//	"SUB	LR, LR, #60												\n\t"
-//	/* Push the SPSR onto the task stack. */
-//	"MRS	R0, SPSR												\n\t"
-//	"STMDB	LR!, {R0}												\n\t"
-//	"LDR	R0, =ulCriticalNesting									\n\t"
-//	"LDR	R0, [R0]												\n\t"
-//	"STMDB	LR!, {R0}												\n\t"
-//	/* Store the new top of stack for the task. */
-//	"LDR	R0, =pxCurrentTCB										\n\t"
-//	"LDR	R0, [R0]												\n\t"
-//	"STR	LR, [R0]												\n\t"
-//	);
-//	( void ) ulCriticalNesting;
-//	( void ) pxCurrentTCB;
-
-	//portSAVE_CONTEXT();
-//if(loaded != 0) println("portSAVE_CONTEXT", 0xFFFFFFFF);
+	portSAVE_CONTEXT();
+//if(loaded != 0) println("vFreeRTOS_ISR", 0xFFFFFFFF);
 	irqHandler();
-	//portRESTORE_CONTEXT();
-//if(loaded != 0) println("portRESTORE_CONTEXT", 0xFFFFFFFF);
+//if(loaded == 2) println("vFreeRTOS_ISR", 0xFFFFFFFF);
+	portRESTORE_CONTEXT();
+	//shouldn't get here, but if it does just return
+	__asm volatile("subs pc, lr, #4");
+}
 
-	//return
-	__asm volatile("mov pc, lr");
+//the kludge_ISR exists because some interrupts might be needed before the task scheduler starts
+void kludge_ISR( void ) __attribute__((naked, no_instrument_function));
+void kludge_ISR( void ) {
+	//push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,lr}
+	//if(loaded != 0) println("kludge_ISR", 0xFFFFFFFF);
+	irqHandler();
+	__asm volatile("subs pc, lr, #4");
 }
 
 /*
@@ -211,9 +182,14 @@ void vFreeRTOS_ISR( void ) {
 different optimisation levels.  The interrupt flags can therefore not always
 be saved to the stack.  Instead the critical section nesting level is stored
 in a variable, which is then saved as part of the stack context. */
+char s_bWereEnabled;
 //__attribute__((no_instrument_function))
-void vPortEnterCritical( void )
-{
+void vPortEnterCritical( void ){
+	int nFlags;
+	__asm volatile ("mrs %0, cpsr" : "=r" (nFlags));
+	s_bWereEnabled = nFlags & 0x80 ? 0 : 1; 
+	if(!s_bWereEnabled) return;
+
 	/* Disable interrupts as per portDISABLE_INTERRUPTS(); 							*/
 	__asm volatile ( 
 		"STMDB	SP!, {R0}			\n\t"	/* Push R0.								*/
@@ -228,8 +204,9 @@ void vPortEnterCritical( void )
 	ulCriticalNesting++;
 }
 //__attribute__((no_instrument_function))
-void vPortExitCritical( void )
-{
+void vPortExitCritical( void ){
+	if(!s_bWereEnabled) return;
+
 	if( ulCriticalNesting > portNO_CRITICAL_NESTING )
 	{
 		/* Decrement the nesting count as we are leaving a critical section. */
