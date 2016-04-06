@@ -32,6 +32,7 @@ const portTickType ulMaxBlockTime = pdMS_TO_TICKS( 100 );
 	}
 }
 
+//this needs work
 portBASE_TYPE xNetworkInterfaceInitialise(){
 	vTaskSuspendAll();
 	initUSBEthernet();

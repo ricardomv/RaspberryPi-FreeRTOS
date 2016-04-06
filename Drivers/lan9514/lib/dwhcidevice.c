@@ -978,7 +978,7 @@ void DWHCIDeviceChannelInterruptHandler (TDWHCIDevice *pThis, unsigned nChannel)
 
 		TDWHCIRegister ChanInterrupt;
 		DWHCIRegister (&ChanInterrupt, DWHCI_HOST_CHAN_INT (nChannel));
-if(loaded != 0) printHex("_DWHCI_HOST_CHAN_INT ", DWHCIRegisterRead (&ChanInterrupt), 0xFFFFFFFF);
+
 		// restart halted transaction
 		if (DWHCIRegisterRead (&ChanInterrupt) == DWHCI_HOST_CHAN_INT_HALTED)
 		{
@@ -1012,7 +1012,7 @@ if(loaded != 0) printHex("_DWHCI_HOST_CHAN_INT ", DWHCIRegisterRead (&ChanInterr
 		if (nStatus & DWHCI_HOST_CHAN_INT_ERROR_MASK)
 		{
 			LogWrite (FromDWHCI, LOG_ERROR, "Transaction failed 1 (status 0x%X)", nStatus);
-if(loaded != 0) printHex("DWHCI_HOST_CHAN_INT ", nStatus, 0xFFFFFFFF);
+
 			USBRequestSetStatus (pURB, 0);
 		}
 		else if (   (nStatus & (DWHCI_HOST_CHAN_INT_NAK | DWHCI_HOST_CHAN_INT_NYET))

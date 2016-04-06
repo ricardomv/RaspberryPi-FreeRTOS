@@ -65,21 +65,19 @@ void initUSBEthernet(){
 	kludge = 0;
 }
 
-int arp(){
 //sudo arping -I interface 192.168.0.250
+int arp(){
 	u8 OwnMACAddress[MAC_ADDRESS_SIZE];
 	USPiGetMACAddress (OwnMACAddress);
 
-	while (1)
-	{
-		//vTaskDelay(500);
+	while (1){
 		u8 Buffer[USPI_FRAME_BUFFER_SIZE];
 		unsigned nFrameLength;
 		if (!USPiReceiveFrame (Buffer, &nFrameLength))
 		{
 			continue;
 		}
-
+		LogWrite (FromSample, LOG_NOTICE, "");
 		LogWrite (FromSample, LOG_NOTICE, "Frame received (length %u)", nFrameLength);
 
 		if (nFrameLength < sizeof (TARPFrame))
@@ -128,7 +126,6 @@ int arp(){
 		if (!USPiSendFrame (pARPFrame, sizeof *pARPFrame))
 		{
 			LogWrite (FromSample, LOG_ERROR, "USPiSendFrame failed");
-
 			break;
 		}
 
