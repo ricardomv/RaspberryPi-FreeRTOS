@@ -605,7 +605,7 @@ static const DNSMessage_t xDefaultPartDNSHeader =
 };
 
 	/* Copy in the const part of the header. */
-	memcpy( ( void * ) pucUDPPayloadBuffer, ( void * ) &xDefaultPartDNSHeader, sizeof( xDefaultPartDNSHeader ) );
+	memcpy2( ( void * ) pucUDPPayloadBuffer, ( void * ) &xDefaultPartDNSHeader, sizeof( xDefaultPartDNSHeader ) );
 
 	/* Write in a unique identifier. */
 	pxDNSMessageHeader = ( DNSMessage_t * ) pucUDPPayloadBuffer;
@@ -836,7 +836,7 @@ unsigned short x, usDataLength, usQuestions;
 						pucByte++;
 
 						/* Copy the IP address out of the record. */
-						memcpy( ( void * ) &ulIPAddress, ( void * ) pucByte, sizeof( unsigned int ) );
+						memcpy2( ( void * ) &ulIPAddress, ( void * ) pucByte, sizeof( unsigned int ) );
 
 						#if( ipconfigUSE_DNS_CACHE == 1 )
 						{
@@ -859,7 +859,7 @@ unsigned short x, usDataLength, usQuestions;
 					pucByte += ( sizeof( unsigned int ) + sizeof( unsigned int ) );
 
 					/* Determine the length of the data in the field. */
-					memcpy( ( void * ) &usDataLength, ( void * ) pucByte, sizeof( unsigned short ) );
+					memcpy2( ( void * ) &usDataLength, ( void * ) pucByte, sizeof( unsigned short ) );
 					usDataLength = FreeRTOS_ntohs( usDataLength );
 
 					/* Jump over the data length bytes, and the data itself. */

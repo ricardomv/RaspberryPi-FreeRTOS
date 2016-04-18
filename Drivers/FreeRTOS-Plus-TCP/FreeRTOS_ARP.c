@@ -119,7 +119,7 @@ static portTickType xLastGratuitousARPTime = 0;
 
 /* Part of the Ethernet and ARP headers are always constant when sending an IPv4
 ARP packet.  This array defines the constant parts, allowing this part of the
-packet to be filled in using a simple memcpy() instead of individual writes. */
+packet to be filled in using a simple memcpy2() instead of individual writes. */
 static const unsigned char xDefaultPartARPPacketHeader[] =
 {
 	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 	/* Ethernet destination address. */
@@ -155,7 +155,7 @@ ARPHeader_t *pxARPHeader;
 			case ipARP_REQUEST	:
 				/* The packet contained an ARP request.  Was it for the IP
 				address of the node running this code? */
-				if( pxARPHeader->ulTargetProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER )
+				if( (pxARPHeader->ulTargetProtocolAddressLow + (pxARPHeader->ulTargetProtocolAddressHigh << 16)) == *ipLOCAL_IP_ADDRESS_POINTER )
 				{
 					iptraceSENDING_ARP_REPLY( pxARPHeader->ulSenderProtocolAddress );
 
@@ -166,28 +166,29 @@ ARPHeader_t *pxARPHeader;
 
 					/* Generate a reply payload in the same buffer. */
 					pxARPHeader->usOperation = ipARP_REPLY;
-					if( pxARPHeader->ulTargetProtocolAddress == pxARPHeader->ulSenderProtocolAddress )
+					if( (pxARPHeader->ulTargetProtocolAddressLow + (pxARPHeader->ulTargetProtocolAddressHigh << 16)) == pxARPHeader->ulSenderProtocolAddress )
 					{
 						/* A double IP address is detected! */
 						/* Give the sources MAC address the value of the broadcast address, will be swapped later */
-						memcpy( pxARPFrame->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( xBroadcastMACAddress ) );
+						memcpy2( pxARPFrame->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( xBroadcastMACAddress ) );
 						memset( pxARPHeader->xTargetHardwareAddress.ucBytes, '\0', sizeof( MACAddress_t ) );
-						pxARPHeader->ulTargetProtocolAddress = 0UL;
+						pxARPHeader->ulTargetProtocolAddressLow = 0UL;
+						pxARPHeader->ulTargetProtocolAddressHigh = 0UL;
 					}
 					else
 					{
-						memcpy( pxARPHeader->xTargetHardwareAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( MACAddress_t ) );
-						pxARPHeader->ulTargetProtocolAddress = pxARPHeader->ulSenderProtocolAddress;
+						memcpy2( pxARPHeader->xTargetHardwareAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( MACAddress_t ) );
+						pxARPHeader->ulTargetProtocolAddressLow = (short)pxARPHeader->ulSenderProtocolAddress;
+						pxARPHeader->ulTargetProtocolAddressHigh = (short)(pxARPHeader->ulSenderProtocolAddress >> 16);
 					}
-					memcpy( pxARPHeader->xSenderHardwareAddress.ucBytes, ( void * ) ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+					memcpy2( pxARPHeader->xSenderHardwareAddress.ucBytes, ( void * ) ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
 					pxARPHeader->ulSenderProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-
 					eReturn = eReturnEthernetFrame;
 				}
 				break;
 
 			case ipARP_REPLY :
-				iptracePROCESSING_RECEIVED_ARP_REPLY( pxARPHeader->ulTargetProtocolAddress );
+				iptracePROCESSING_RECEIVED_ARP_REPLY( (pxARPHeader->ulTargetProtocolAddressLow + (pxARPHeader->ulTargetProtocolAddressHigh << 16)) );
 				vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), pxARPHeader->ulSenderProtocolAddress );
 				/* process received ARP frame to see if there is a clash. */
 				#if( ipconfigARP_USE_CLASH_DETECTION != 0 )
@@ -195,7 +196,7 @@ ARPHeader_t *pxARPHeader;
 					if( pxARPHeader->ulSenderProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER )
 					{
 						xARPHadIPClash = pdTRUE;
-						memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof xARPClashMacAddress.ucBytes );
+						memcpy2( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof xARPClashMacAddress.ucBytes );
 					}
 				}
 				#endif /* ipconfigARP_USE_CLASH_DETECTION */
@@ -206,7 +207,6 @@ ARPHeader_t *pxARPHeader;
 				break;
 		}
 	}
-
 	return eReturn;
 }
 
@@ -349,8 +349,7 @@ unsigned char ucMinAgeFound = 0U;
 
 		if( pxMACAddress != NULL )
 		{
-			memcpy( xARPCache[ xUseEntry ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) );
-
+			memcpy2( xARPCache[ xUseEntry ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) );
 			iptraceARP_TABLE_ENTRY_CREATED( ulIPAddress, (*pxMACAddress) );
 			/* And this entry does not need immediate attention */
 			xARPCache[ xUseEntry ].ucAge = ipconfigMAX_ARP_AGE;
@@ -399,7 +398,8 @@ unsigned int ulAddressToLookup;
 	if( *pulIPAddress == ipLLMNR_IP_ADDR )	/* Is in network byte order */
 	{
 		/* The LLMNR IP-address has a fixed virtual MAC address */
-		memcpy( pxMACAddress->ucBytes, xLLMNR_MacAdress.ucBytes, sizeof( MACAddress_t ) );
+		//memcpy2( pxMACAddress->ucBytes, xLLMNR_MacAdress.ucBytes, sizeof( MACAddress_t ) );
+		for(int i = 0; i < sizeof(MACAddress_t); i++){ pxMACAddress->ucBytes[i] = xLLMNR_MacAdress.ucBytes[i]; }
 		eReturn = eARPCacheHit;
 	}
 	else
@@ -408,7 +408,8 @@ unsigned int ulAddressToLookup;
 		( *pulIPAddress == xNetworkAddressing.ulBroadcastAddress ) )/* Or a local broadcast address 192.168.1.255 ? */
 	{
 		/* This is a broadcast so uses the broadcast MAC address. */
-		memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+		//memcpy2( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+		for(int i = 0; i < sizeof(MACAddress_t); i++){ pxMACAddress->ucBytes[i] = xBroadcastMACAddress.ucBytes[i]; }
 		eReturn = eARPCacheHit;
 	}
 	else if( *ipLOCAL_IP_ADDRESS_POINTER == 0UL )
@@ -493,7 +494,7 @@ eARPLookupResult_t eReturn = eARPCacheMiss;
 			else
 			{
 				/* A valid entry was found. */
-				memcpy( pxMACAddress->ucBytes, xARPCache[ x ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+				memcpy2( pxMACAddress->ucBytes, xARPCache[ x ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 				eReturn = eARPCacheHit;
 			}
 			break;
@@ -588,7 +589,7 @@ ARPPacket_t *pxARPPacket;
 
 	pxARPPacket = ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-	/* memcpy the const part of the header information into the correct
+	/* memcpy2 the const part of the header information into the correct
 	location in the packet.  This copies:
 		xEthernetHeader.ulDestinationAddress
 		xEthernetHeader.usFrameType;
@@ -599,12 +600,13 @@ ARPPacket_t *pxARPPacket;
 		xARPHeader.usOperation;
 		xARPHeader.xTargetHardwareAddress;
 	*/
-	memcpy( ( void * ) &( pxARPPacket->xEthernetHeader ), ( void * ) xDefaultPartARPPacketHeader, sizeof( xDefaultPartARPPacketHeader ) );
-	memcpy( ( void * ) pxARPPacket->xEthernetHeader.xSourceAddress.ucBytes , ( void * ) ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
-	memcpy( ( void * ) pxARPPacket->xARPHeader.xSenderHardwareAddress.ucBytes, ( void * ) ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+	memcpy2( ( void * ) &( pxARPPacket->xEthernetHeader ), ( void * ) xDefaultPartARPPacketHeader, sizeof( xDefaultPartARPPacketHeader ) );
+	memcpy2( ( void * ) pxARPPacket->xEthernetHeader.xSourceAddress.ucBytes , ( void * ) ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+	memcpy2( ( void * ) pxARPPacket->xARPHeader.xSenderHardwareAddress.ucBytes, ( void * ) ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 	/* HT:endian: network to network */
 	pxARPPacket->xARPHeader.ulSenderProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-	pxARPPacket->xARPHeader.ulTargetProtocolAddress = pxNetworkBuffer->ulIPAddress;
+	pxARPPacket->xARPHeader.ulTargetProtocolAddressLow = (short)pxNetworkBuffer->ulIPAddress;
+	pxARPPacket->xARPHeader.ulTargetProtocolAddressHigh = (short)(pxNetworkBuffer->ulIPAddress >> 16);
 
 	pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
 

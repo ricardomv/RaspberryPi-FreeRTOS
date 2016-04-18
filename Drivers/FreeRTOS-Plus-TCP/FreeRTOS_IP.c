@@ -478,7 +478,7 @@ struct freertos_sockaddr xAddress;
 		#endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
 		iptraceNETWORK_EVENT_RECEIVED( xReceivedEvent.eEventType );
-
+printHex("event ", xReceivedEvent.eEventType, 0xFFFFFFFF);
 		switch( xReceivedEvent.eEventType )
 		{
 			case eNetworkDownEvent :
@@ -974,7 +974,7 @@ NetworkBufferDescriptor_t * pxNewBuffer;
 		pxNewBuffer->ulIPAddress = pxNetworkBuffer->ulIPAddress;
 		pxNewBuffer->usPort = pxNetworkBuffer->usPort;
 		pxNewBuffer->usBoundPort = pxNetworkBuffer->usBoundPort;
-		memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+		memcpy2( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
 	}
 
 	return pxNewBuffer;
@@ -1093,7 +1093,7 @@ portBASE_TYPE xReturn = pdFALSE;
 			xNetworkAddressing.ulDNSServerAddress = FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] );
 			xNetworkAddressing.ulBroadcastAddress = ( xNetworkAddressing.ulDefaultIPAddress & xNetworkAddressing.ulNetMask ) |  ~xNetworkAddressing.ulNetMask;
 
-			memcpy( &xDefaultAddressing, &xNetworkAddressing, sizeof xDefaultAddressing );
+			memcpy2( &xDefaultAddressing, &xNetworkAddressing, sizeof xDefaultAddressing );
 
 			#if ipconfigUSE_DHCP == 1
 			{
@@ -1113,7 +1113,7 @@ portBASE_TYPE xReturn = pdFALSE;
 
 			/* The MAC address is stored in the start of the default packet
 			header fragment, which is used when sending UDP packets. */
-			memcpy( ( void * ) ipLOCAL_MAC_ADDRESS, ( void * ) ucMACAddress, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+			memcpy2( ( void * ) ipLOCAL_MAC_ADDRESS, ( void * ) ucMACAddress, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
 			/* Prepare the sockets interface. */
 			vNetworkSocketsInit();
@@ -2162,8 +2162,8 @@ EthernetHeader_t *pxEthernetHeader;
 		pxEthernetHeader = ( EthernetHeader_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
 
 		/* Swap source and destination MAC addresses. */
-		memcpy( ( void * ) &( pxEthernetHeader->xDestinationAddress ), ( void * ) &( pxEthernetHeader->xSourceAddress ), sizeof( pxEthernetHeader->xDestinationAddress ) );
-		memcpy( ( void * ) &( pxEthernetHeader->xSourceAddress) , ( void * ) ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+		memcpy2( ( void * ) &( pxEthernetHeader->xDestinationAddress ), ( void * ) &( pxEthernetHeader->xSourceAddress ), sizeof( pxEthernetHeader->xDestinationAddress ) );
+		memcpy2( ( void * ) &( pxEthernetHeader->xSourceAddress) , ( void * ) ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
 		/* Send! */
 		xNetworkInterfaceOutput( pxNetworkBuffer, xReleaseAfterSend );

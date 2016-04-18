@@ -260,7 +260,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifndef ipconfigUSE_DHCP
-	#define ipconfigUSE_DHCP				1
+	#define ipconfigUSE_DHCP				0
 #endif
 
 #ifndef ipconfigDHCP_USES_USER_HOOK

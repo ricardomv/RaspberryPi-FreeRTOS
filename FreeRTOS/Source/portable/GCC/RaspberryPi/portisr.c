@@ -134,15 +134,6 @@ void vFreeRTOS_ISR( void ) {
 	__asm volatile("subs pc, lr, #4");
 }
 
-//the kludge_ISR exists because some interrupts might be needed before the task scheduler starts
-void kludge_ISR( void ) __attribute__((naked, no_instrument_function));
-void kludge_ISR( void ) {
-	//push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,lr}
-	//if(loaded != 0) println("kludge_ISR", 0xFFFFFFFF);
-	irqHandler();
-	__asm volatile("subs pc, lr, #4");
-}
-
 /*
  * The interrupt management utilities can only be called from ARM mode.  When
  * THUMB_INTERWORK is defined the utilities are defined as functions here to

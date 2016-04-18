@@ -98,7 +98,7 @@ int GetMACAddress (unsigned char Buffer[6]){
 		mailboxRead(8);
 	}
 
-	//memcpy(Buffer, *(&mailbuffer + 24), 6);
+	//memcpy2(Buffer, *(&mailbuffer + 24), 6);
 	Buffer[0] = (char)(mailbuffer[5] >> 0);
 	Buffer[1] = (char)(mailbuffer[5] >> 8);
 	Buffer[2] = (char)(mailbuffer[5] >> 16);
@@ -126,7 +126,7 @@ void LogWrite (const char *pSource, unsigned Severity, const char *pMessage, ...
 void uspi_assertion_failed (const char *pExpr, const char *pFile, unsigned nLine){	
 	println(pExpr, 0xFFFFFFFF);
 	println(pFile, 0xFFFFFFFF);
-	printHex("", nLine, 0xFFFFFFFF);
+	printHex("Line ", nLine, 0xFFFFFFFF);
 	while(1){;} //system failure
 }
 

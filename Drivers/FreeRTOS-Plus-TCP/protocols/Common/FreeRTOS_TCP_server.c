@@ -310,7 +310,7 @@ char *pxBuffer;
 	pxBuffer = ( char * ) pvPortMalloc( xLength );
 	if( pxBuffer != NULL )
 	{
-		memcpy( pxBuffer, pcString, xLength );
+		memcpy2( pxBuffer, pcString, xLength );
 	}
 
 	return pxBuffer;

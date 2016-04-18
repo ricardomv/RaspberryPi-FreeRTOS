@@ -4,7 +4,6 @@
 #include "interrupts.h"
 #include "gpio.h"
 #include "video.h"
-#include "lan9514/arp.h"
 
 void task1() {
 	int i = 0;
@@ -25,16 +24,6 @@ void task2() {
 	}
 }
 
-void arpTask() {
-	arp();
-	/*
-	 *	We should never get here, but just in case something goes wrong,
-	 *	we'll place the CPU into a safe loop.
-	 */
-	println("arpTask_failed", 0xFFFFFFFF);
-	while(1) {;}
-}
-
 /**
  *	This is the systems main entry, some call it a boot thread.
  *
@@ -51,12 +40,16 @@ int main(void) {
 	DisableInterrupts();
 	InitInterruptController();
 
-	initUSBEthernet();
-
 	//the LED tasks must be running for the arpTask to work!?
 	xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
 	xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
-	xTaskCreate(arpTask, "ARP", 128, NULL, 0, NULL);
+
+	const unsigned char ucIPAddress[ 4 ] = {192, 168, 0, 250};
+	const unsigned char ucNetMask[ 4 ] = {255, 255, 255, 0};
+	const unsigned char ucGatewayAddress[ 4 ] = {192, 168, 0, 1};
+	const unsigned char ucDNSServerAddress[ 4 ] = {8, 8, 8, 8};
+	const unsigned char ucMACAddress[ 6 ] = {0xB8, 0x27, 0xEB, 0x19, 0xAD, 0xA7};
+	FreeRTOS_IPInit(ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress);
 
 	vTaskStartScheduler();
 

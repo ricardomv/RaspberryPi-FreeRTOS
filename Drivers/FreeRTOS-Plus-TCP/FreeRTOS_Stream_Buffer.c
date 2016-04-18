@@ -118,7 +118,7 @@ size_t uxSpace, uxNextHead, uxFirst;
 			uxFirst = FreeRTOS_min_uint32( pxBuffer->LENGTH - uxNextHead, uxCount );
 
 			/* Write as many bytes as can be written in the first write. */
-			memcpy( ( void* ) ( pxBuffer->ucArray + uxNextHead ), pucData, uxFirst );
+			memcpy2( ( void* ) ( pxBuffer->ucArray + uxNextHead ), pucData, uxFirst );
 
 			/* If the number of bytes written was less than the number that
 			could be written in the first write... */
@@ -126,7 +126,7 @@ size_t uxSpace, uxNextHead, uxFirst;
 			{
 				/* ...then write the remaining bytes to the start of the
 				buffer. */
-				memcpy( ( void * )pxBuffer->ucArray, pucData + uxFirst, uxCount - uxFirst );
+				memcpy2( ( void * )pxBuffer->ucArray, pucData + uxFirst, uxCount - uxFirst );
 			}
 		}
 
@@ -200,14 +200,14 @@ size_t uxSize, uxCount, uxFirst, uxNextTail;
 
 			/* Obtain the number of bytes it is possible to obtain in the first
 			read. */
-			memcpy( pucData, pxBuffer->ucArray + uxNextTail, uxFirst );
+			memcpy2( pucData, pxBuffer->ucArray + uxNextTail, uxFirst );
 
 			/* If the total number of wanted bytes is greater than the number
 			that could be read in the first read... */
 			if( uxCount > uxFirst )
 			{
 				/*...then read the remaining bytes from the start of the buffer. */
-				memcpy( pucData + uxFirst, pxBuffer->ucArray, uxCount - uxFirst );
+				memcpy2( pucData + uxFirst, pxBuffer->ucArray, uxCount - uxFirst );
 			}
 		}
 

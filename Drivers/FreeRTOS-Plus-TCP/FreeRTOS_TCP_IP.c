@@ -899,11 +899,11 @@ NetworkBufferDescriptor_t xTempBuffer;
 		pxNetworkBuffer->xDataLength = ulLen + ipSIZE_OF_ETH_HEADER;
 
 		/* Fill in the destination MAC addresses. */
-		memcpy( ( void * ) &( pxEthernetHeader->xDestinationAddress ), ( void * ) &( pxEthernetHeader->xSourceAddress ),
+		memcpy2( ( void * ) &( pxEthernetHeader->xDestinationAddress ), ( void * ) &( pxEthernetHeader->xSourceAddress ),
 			sizeof( pxEthernetHeader->xDestinationAddress ) );
 
 		/* The source MAC addresses is fixed to 'ipLOCAL_MAC_ADDRESS'. */
-		memcpy( ( void * ) &( pxEthernetHeader->xSourceAddress) , ( void * ) ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+		memcpy2( ( void * ) &( pxEthernetHeader->xSourceAddress) , ( void * ) ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
 		/* Send! */
 		xNetworkInterfaceOutput( pxNetworkBuffer, xReleaseAfterSend );
@@ -914,7 +914,7 @@ NetworkBufferDescriptor_t xTempBuffer;
 			containing the packet header. */
 			vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort);
 			pxTCPPacket->xIPHeader.ulSourceIPAddress = pxTCPPacket->xIPHeader.ulDestinationIPAddress;
-			memcpy( pxEthernetHeader->xSourceAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, 6);
+			memcpy2( pxEthernetHeader->xSourceAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, 6);
 		}
 		else
 		{
@@ -1021,7 +1021,7 @@ portBASE_TYPE xReturn = pdTRUE;
 
 		/* Write the Ethernet address in Source, because it will be swapped by
 		prvTCPReturnPacket(). */
-		memcpy( &pxTCPPacket->xEthernetHeader.xSourceAddress, &xEthAddress, sizeof( xEthAddress ) );
+		memcpy2( &pxTCPPacket->xEthernetHeader.xSourceAddress, &xEthAddress, sizeof( xEthAddress ) );
 
 		/* ipIP_TYPE is already in network-byte-order. */
 		pxTCPPacket->xEthernetHeader.usFrameType = ipIP_TYPE;
@@ -1545,7 +1545,7 @@ portBASE_TYPE xResize;
 			if( pxNetworkBuffer )
 			{
 				/* Either from the previous buffer... */
-				memcpy( pxReturn->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+				memcpy2( pxReturn->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
 
 				/* ...and release it. */
 				vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
@@ -1553,7 +1553,7 @@ portBASE_TYPE xResize;
 			else
 			{
 				/* Or from the socket field 'xTcp.lastPacket'. */
-				memcpy( pxReturn->pucEthernetBuffer, pxSocket->u.xTcp.lastPacket, sizeof( pxSocket->u.xTcp.lastPacket ) );
+				memcpy2( pxReturn->pucEthernetBuffer, pxSocket->u.xTcp.lastPacket, sizeof( pxSocket->u.xTcp.lastPacket ) );
 			}
 		}
 	}
@@ -1962,7 +1962,7 @@ unsigned int ulAckNr = FreeRTOS_ntohl( pxTCPHeader->ulAckNr );
 		ulTimes[1]   = FreeRTOS_htonl( pxSocket->u.xTcp.xTcpWindow.rx.ulTimeStamp );
 		ucOptdata[0] = TCP_OPT_TIMESTAMP;
 		ucOptdata[1] = TCP_OPT_TIMESTAMP_LEN;
-		memcpy( &(ucOptdata[2] ), ulTimes, 8);
+		memcpy2( &(ucOptdata[2] ), ulTimes, 8);
 		ucOptdata[10] = TCP_OPT_NOOP;
 		ucOptdata[11] = TCP_OPT_NOOP;
 		/* Do not return the same timestamps 2 times. */
@@ -2140,7 +2140,7 @@ portBASE_TYPE xOptionsLength = pxTcpWindow->ucOptionLength;
 					xOptionsLength,
 					FreeRTOS_ntohl( pxTcpWindow->ulOptionsData[ 1 ] ) - pxSocket->u.xTcp.xTcpWindow.rx.ulFirstSequenceNumber,
 					FreeRTOS_ntohl( pxTcpWindow->ulOptionsData[ 2 ] ) - pxSocket->u.xTcp.xTcpWindow.rx.ulFirstSequenceNumber ) );
-			memcpy( pxTCPHeader->ucOptdata, pxTcpWindow->ulOptionsData, ( size_t ) xOptionsLength );
+			memcpy2( pxTCPHeader->ucOptdata, pxTcpWindow->ulOptionsData, ( size_t ) xOptionsLength );
 
 			/* The header length divided by 4, goes into the higher nibble,
 			effectively a shift-left 2. */
@@ -2887,7 +2887,7 @@ portBASE_TYPE xResult = pdPASS;
 				headers).  It might be used later on, whenever data must be sent
 				to the peer. */
 				const portBASE_TYPE lOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IP_HEADER;
-				memcpy( pxSocket->u.xTcp.lastPacket + lOffset, pxNetworkBuffer->pucEthernetBuffer + lOffset, ipSIZE_OF_TCP_HEADER );
+				memcpy2( pxSocket->u.xTcp.lastPacket + lOffset, pxNetworkBuffer->pucEthernetBuffer + lOffset, ipSIZE_OF_TCP_HEADER );
 			}
 		}
 	}
@@ -3019,7 +3019,7 @@ FreeRTOS_Socket_t *pxReturn;
 
 		/* Make a copy of the header up to the TCP header.  It is needed later
 		on, whenever data must be sent to the peer. */
-		memcpy( pxReturn->u.xTcp.lastPacket, pxNetworkBuffer->pucEthernetBuffer, sizeof( pxReturn->u.xTcp.lastPacket ) );
+		memcpy2( pxReturn->u.xTcp.lastPacket, pxNetworkBuffer->pucEthernetBuffer, sizeof( pxReturn->u.xTcp.lastPacket ) );
 	}
 	return pxReturn;
 }

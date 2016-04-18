@@ -110,11 +110,13 @@ struct xARP_HEADER
 	MACAddress_t xSenderHardwareAddress;	/*  8 +  6 = 14 */
 	unsigned int ulSenderProtocolAddress;		/* 14 +  4 = 18  */
 	MACAddress_t xTargetHardwareAddress;	/* 18 +  6 = 24  */
-	unsigned int ulTargetProtocolAddress;		/* 24 +  4 = 28  */
+	//this integer must be split because of alignment issues
+	unsigned short ulTargetProtocolAddressLow;	/* 24 +  2 = 26  */
+	unsigned short ulTargetProtocolAddressHigh;	/* 26 +  2 = 28  */
 }
 #include "pack_struct_end.h"
 typedef struct xARP_HEADER ARPHeader_t;
-
+ 
 #include "pack_struct_start.h"
 struct xIP_HEADER
 {

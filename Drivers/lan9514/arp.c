@@ -48,10 +48,7 @@ static const u8 OwnIPAddress[] = OWN_IP_ADDRESS;
 
 static const char FromSample[] = "sample";
 
-extern int kludge;
 void initUSBEthernet(){
-	kludge = 1;
-
 	if (!USPiInitialize ()){
 		LogWrite (FromSample, LOG_ERROR, "Cannot initialize USPi");
 		return;
@@ -61,8 +58,6 @@ void initUSBEthernet(){
 		LogWrite (FromSample, LOG_ERROR, "Ethernet device not found");
 		return;
 	}
-
-	kludge = 0;
 }
 
 //sudo arping -I interface 192.168.0.250
@@ -110,18 +105,18 @@ int arp(){
 		LogWrite (FromSample, LOG_NOTICE, "ARP request is to us");
 
 		// prepare reply packet
-		memcpy (pARPFrame->Ethernet.MACReceiver, pARPFrame->ARP.HWAddressSender, MAC_ADDRESS_SIZE);
-		//memcpy (pARPFrame->Ethernet.MACSender, OwnMACAddress, MAC_ADDRESS_SIZE);
+		memcpy2 (pARPFrame->Ethernet.MACReceiver, pARPFrame->ARP.HWAddressSender, MAC_ADDRESS_SIZE);
+		//memcpy2 (pARPFrame->Ethernet.MACSender, OwnMACAddress, MAC_ADDRESS_SIZE);
 		for(int i = 0; i < MAC_ADDRESS_SIZE; i++){ pARPFrame->Ethernet.MACSender[i] = OwnMACAddress[i]; }
 
 		pARPFrame->ARP.nOPCode = BE (ARP_REPLY);
 
-		memcpy (pARPFrame->ARP.HWAddressTarget, pARPFrame->ARP.HWAddressSender, MAC_ADDRESS_SIZE);
-		memcpy (pARPFrame->ARP.ProtocolAddressTarget, pARPFrame->ARP.ProtocolAddressSender, IP_ADDRESS_SIZE);
+		memcpy2 (pARPFrame->ARP.HWAddressTarget, pARPFrame->ARP.HWAddressSender, MAC_ADDRESS_SIZE);
+		memcpy2 (pARPFrame->ARP.ProtocolAddressTarget, pARPFrame->ARP.ProtocolAddressSender, IP_ADDRESS_SIZE);
 
-		//memcpy (pARPFrame->ARP.HWAddressSender, OwnMACAddress, MAC_ADDRESS_SIZE);
+		//memcpy2 (pARPFrame->ARP.HWAddressSender, OwnMACAddress, MAC_ADDRESS_SIZE);
 		for(int i = 0; i < MAC_ADDRESS_SIZE; i++){ pARPFrame->ARP.HWAddressSender[i] = OwnMACAddress[i]; }
-		memcpy (pARPFrame->ARP.ProtocolAddressSender, OwnIPAddress, IP_ADDRESS_SIZE);
+		memcpy2 (pARPFrame->ARP.ProtocolAddressSender, OwnIPAddress, IP_ADDRESS_SIZE);
 
 		if (!USPiSendFrame (pARPFrame, sizeof *pARPFrame))
 		{

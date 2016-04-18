@@ -332,7 +332,7 @@ portBASE_TYPE xGivingUp = pdFALSE;
 			{
 				if( eAnswer == eDHCPUseDefaults )
 				{
-					memcpy( &xNetworkAddressing, &xDefaultAddressing, sizeof xNetworkAddressing );
+					memcpy2( &xNetworkAddressing, &xDefaultAddressing, sizeof xNetworkAddressing );
 				}
 				/* The user indicates that the DHCP process does not continue. */
 				xGivingUp = pdTRUE;
@@ -364,7 +364,7 @@ portBASE_TYPE xGivingUp = pdFALSE;
 			#if( ipconfigDHCP_USES_USER_HOOK != 0 )
 				if( eAnswer == eDHCPUseDefaults )
 				{
-					memcpy( &xNetworkAddressing, &xDefaultAddressing, sizeof xNetworkAddressing );
+					memcpy2( &xNetworkAddressing, &xDefaultAddressing, sizeof xNetworkAddressing );
 				}
 				/* The user indicates that the DHCP process does not continue. */
 				xGivingUp = pdTRUE;
@@ -656,7 +656,7 @@ const unsigned int ulMandatoryOptions = 2; /* DHCP server address, and the corre
 
 					/* In most cases, a 4-byte network-endian parameter follows,
 					just get it once here and use later */
-					memcpy( ( void * ) &( ulParameter ), ( void * ) pucByte, ( size_t ) sizeof( ulParameter ) );
+					memcpy2( ( void * ) &( ulParameter ), ( void * ) pucByte, ( size_t ) sizeof( ulParameter ) );
 
 					switch( ucOptionCode )
 					{
@@ -828,10 +828,10 @@ unsigned char *pucUDPPayloadBuffer;
 		pxDHCPMessage->usFlags = 0;
 	}
 
-	memcpy( ( void * ) &( pxDHCPMessage->ucClientHardwareAddress[ 0 ] ), ( void * ) ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+	memcpy2( ( void * ) &( pxDHCPMessage->ucClientHardwareAddress[ 0 ] ), ( void * ) ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
 
 	/* Copy in the const part of the options options. */
-	memcpy( ( void * ) &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET ] ), ( void * ) pucOptionsArray, *pxOptionsArraySize );
+	memcpy2( ( void * ) &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET ] ), ( void * ) pucOptionsArray, *pxOptionsArraySize );
 
 	#if( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
 	{
@@ -842,14 +842,14 @@ unsigned char *pucUDPPayloadBuffer;
 		pucPtr = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + ( *pxOptionsArraySize - 1 ) ] );
 		pucPtr[ 0 ] = dhcpDNS_HOSTNAME_OPTIONS_CODE;
 		pucPtr[ 1 ] = ( unsigned char ) xNameLength;
-		memcpy( ( void *) ( pucPtr + 2 ), pucHostName, xNameLength );
+		memcpy2( ( void *) ( pucPtr + 2 ), pucHostName, xNameLength );
 		pucPtr[ 2 + xNameLength ] = dhcpOPTION_END_BYTE;
 		*pxOptionsArraySize += ( 2 + xNameLength );
 	}
 	#endif
 
 	/* Map in the client identifier. */
-	memcpy( ( void * ) &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpCLIENT_IDENTIFIER_OFFSET ] ),
+	memcpy2( ( void * ) &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpCLIENT_IDENTIFIER_OFFSET ] ),
 		( void * ) ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
 
 	/* Set the addressing. */
@@ -880,11 +880,11 @@ size_t xOptionsLength = sizeof( ucDHCPRequestOptions );
 	pucUDPPayloadBuffer = prvCreatePartDHCPMessage( &xAddress, (unsigned char)dhcpREQUEST_OPCODE, ucDHCPRequestOptions, &xOptionsLength );
 
 	/* Copy in the IP address being requested. */
-	memcpy( ( void * ) &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ] ),
+	memcpy2( ( void * ) &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ] ),
 		( void * ) &( xDHCPData.ulOfferedIPAddress ), sizeof( xDHCPData.ulOfferedIPAddress ) );
 
 	/* Copy in the address of the DHCP server being used. */
-	memcpy( ( void * ) &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpDHCP_SERVER_IP_ADDRESS_OFFSET ] ),
+	memcpy2( ( void * ) &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpDHCP_SERVER_IP_ADDRESS_OFFSET ] ),
 		( void * ) &( xDHCPData.ulDHCPServerAddress ), sizeof( xDHCPData.ulDHCPServerAddress ) );
 
 	FreeRTOS_debug_printf( ( "vDHCPProcess: reply %lxip\n", FreeRTOS_ntohl( xDHCPData.ulOfferedIPAddress ) ) );

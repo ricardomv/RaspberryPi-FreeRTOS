@@ -86,4 +86,4 @@ OBJECTS += $(BUILD_DIR)Drivers/FreeRTOS-Plus-TCP/FreeRTOS_TCP_IP.o
 OBJECTS += $(BUILD_DIR)Drivers/FreeRTOS-Plus-TCP/FreeRTOS_TCP_WIN.o
 OBJECTS += $(BUILD_DIR)Drivers/FreeRTOS-Plus-TCP/FreeRTOS_UDP_IP.o
 OBJECTS += $(BUILD_DIR)Drivers/FreeRTOS-Plus-TCP/portable/BufferManagement/BufferAllocation_2.o
-OBJECTS += $(BUILD_DIR)Drivers/FreeRTOS-Plus-TCP/portable/NetworkInterface/NetworkInterface.o
+OBJECTS += $(BUILD_DIR)Drivers/FreeRTOS-Plus-TCP/portable/NetworkInterface.o

@@ -338,12 +338,13 @@ boolean SMSC951xDeviceSendFrame (TSMSC951xDevice *pThis, const void *pBuffer, un
 
 	assert (pThis->m_pTxBuffer != 0);
 	assert (pBuffer != 0);
-	memcpy (pThis->m_pTxBuffer+8, pBuffer, nLength);
+	memcpy2 (pThis->m_pTxBuffer+8, pBuffer, nLength);
 	
 	*(u32 *) &pThis->m_pTxBuffer[0] = TX_CMD_A_FIRST_SEG | TX_CMD_A_LAST_SEG | nLength;
 	*(u32 *) &pThis->m_pTxBuffer[4] = nLength;
 	
 	assert (pThis->m_pEndpointBulkOut != 0);
+
 	return DWHCIDeviceTransfer (USBDeviceGetHost (&pThis->m_USBDevice), pThis->m_pEndpointBulkOut, pThis->m_pTxBuffer, nLength+8) >= 0;
 }
 
@@ -394,7 +395,7 @@ boolean SMSC951xDeviceReceiveFrame (TSMSC951xDevice *pThis, void *pBuffer, unsig
 
 	//LogWrite (FromSMSC951x, LOG_DEBUG, "Frame received (status 0x%X)", nRxStatus);
 
-	memcpy (pBuffer, (u8 *) pBuffer + 4, nFrameLength);	// overwrite RX status
+	memcpy2 (pBuffer, (u8 *) pBuffer + 4, nFrameLength);	// overwrite RX status
 
 	assert (pResultLength != 0);
 	*pResultLength = nFrameLength;

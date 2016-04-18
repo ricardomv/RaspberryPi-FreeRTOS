@@ -31,7 +31,7 @@ swi_handler:        .word vPortYieldProcessor
 prefetch_handler:   .word prefetch_abort
 data_handler:       .word data_abort
 unused_handler:     .word unused
-irq_handler:        .word irq
+irq_handler:        .word vFreeRTOS_ISR
 fiq_handler:        .word fiq
 
 reset:
@@ -116,16 +116,6 @@ data_abort:
 
 unused:
 	b unused
-
-.global kludge
-kludge:	.word 0
-irq:
-	push {r0}
-	ldr r0, kludge
-	cmp r0, #0
-	pop {r0}
-	bne kludge_ISR
-	b vFreeRTOS_ISR
 
 fiq:
 	b fiq

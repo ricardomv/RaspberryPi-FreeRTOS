@@ -22,6 +22,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+#include "FreeRTOS.h"
+#include "task.h"
+
 #include <uspi/dwhcidevice.h>
 #include <uspios.h>
 #include <uspi/bcm2835.h>
@@ -726,6 +729,8 @@ boolean DWHCIDeviceTransferStage (TDWHCIDevice *pThis, TUSBRequest *pURB, boolea
 	while (pThis->m_bWaiting)
 	{
 		// do nothing
+		//portYIELD();
+		portYIELD_WITHIN_API();
 	}
 
 	return USBRequestGetStatus (pURB);

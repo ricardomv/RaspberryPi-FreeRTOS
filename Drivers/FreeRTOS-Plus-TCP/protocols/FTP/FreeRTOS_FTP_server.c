@@ -2009,7 +2009,7 @@ BaseType_t xIsDotDir = 0;
 	}
 	else
 	{
-		memcpy( pxClient->pcCurrentDir, pcNEW_DIR, sizeof pxClient->pcCurrentDir );
+		memcpy2( pxClient->pcCurrentDir, pcNEW_DIR, sizeof pxClient->pcCurrentDir );
 
 		xLength = snprintf( pcCOMMAND_BUFFER, sizeof( pcCOMMAND_BUFFER ), "250 Changed to %s\r\n", pcNEW_DIR );
 		prvSendReply( pxClient->xSocket, pcCOMMAND_BUFFER, xLength );

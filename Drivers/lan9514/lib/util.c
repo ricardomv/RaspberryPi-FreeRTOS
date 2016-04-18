@@ -33,7 +33,7 @@ void *uspi_memset (void *pBuffer, int nValue, size_t nLength)
 	return pBuffer;
 }
 
-void *uspi_memcpy (void *pDest, const void *pSrc, size_t nLength)
+void *uspi_memcpy2 (void *pDest, const void *pSrc, size_t nLength)
 {
 	char *pd = (char *) pDest;
 	char *ps = (char *) pSrc;

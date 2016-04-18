@@ -10,17 +10,21 @@ void *memset(void *s, int c, size_t n){
 
 void *memmove(void *dest, const void *src, size_t n){
     unsigned char tmp[n];
-    memcpy(tmp,src,n);
-    memcpy(dest,tmp,n);
+    memcpy2(tmp,src,n);
+    memcpy2(dest,tmp,n);
     return dest;
 }
 
-void *memcpy(void *dest, const void *src, size_t n){
+void *memcpy2(void *dest, const void *src, size_t n){
+	/*unaligned word moves don't work
+	for sizes not a multiple of 4,
+	this function does not work
+	just use a loop inline*/
     char *dp = dest;
     const char *sp = src;
     while (n--)
         *dp++ = *sp++;
-    return dest;
+	return dest;
 }
 
 int memcmp(const void* s1, const void* s2, size_t n){

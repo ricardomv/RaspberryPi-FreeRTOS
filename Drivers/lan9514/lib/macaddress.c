@@ -55,7 +55,7 @@ void MACAddressSet (TMACAddress *pThis, const u8 *pAddress)
 	assert (pThis != 0);
 	assert (pAddress != 0);
 
-	memcpy (pThis->m_Address, pAddress, MAC_ADDRESS_SIZE);
+	memcpy2 (pThis->m_Address, pAddress, MAC_ADDRESS_SIZE);
 	pThis->m_bValid = TRUE;
 }
 
@@ -81,7 +81,7 @@ void MACAddressCopyTo (TMACAddress *pThis, u8 *pBuffer)
 	assert (pThis->m_bValid);
 	assert (pBuffer != 0);
 
-	memcpy (pBuffer, pThis->m_Address, MAC_ADDRESS_SIZE);
+	memcpy2 (pBuffer, pThis->m_Address, MAC_ADDRESS_SIZE);
 }
 
 boolean MACAddressIsBroadcast (TMACAddress *pThis)

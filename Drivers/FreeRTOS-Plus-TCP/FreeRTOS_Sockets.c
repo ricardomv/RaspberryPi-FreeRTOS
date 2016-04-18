@@ -756,7 +756,7 @@ EventBits_t xEventBits = 0;
 
 			/* Copy the received data into the provided buffer, then release the
 			network buffer. */
-			memcpy( pvBuffer, ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET ] ), ( size_t )lReturn );
+			memcpy2( pvBuffer, ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET ] ), ( size_t )lReturn );
 			vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
 		}
 		else
@@ -843,7 +843,7 @@ FreeRTOS_Socket_t *pxSocket;
 
 				if( pxNetworkBuffer != NULL )
 				{
-					memcpy( ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET ] ), ( void * ) pvBuffer, xTotalDataLength );
+					memcpy2( ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET ] ), ( void * ) pvBuffer, xTotalDataLength );
 
 					if( xTaskCheckForTimeOut( &xTimeOut, &xTicksToWait ) == pdTRUE )
 					{

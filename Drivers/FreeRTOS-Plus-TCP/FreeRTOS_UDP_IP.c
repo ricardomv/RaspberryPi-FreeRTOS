@@ -84,7 +84,7 @@
 
 /* Part of the Ethernet and IP headers are always constant when sending an IPv4
 UDP packet.  This array defines the constant parts, allowing this part of the
-packet to be filled in using a simple memcpy() instead of individual writes. */
+packet to be filled in using a simple memcpy2() instead of individual writes. */
 UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 {
 	/* .ucBytes : */
@@ -145,7 +145,7 @@ unsigned int ulIPAddress = pxNetworkBuffer->ulIPAddress;
 				pxUDPHeader->usChecksum = 0;
 			}
 
-			/* memcpy() the constant parts of the header information into
+			/* memcpy2() the constant parts of the header information into
 			the	correct location within the packet.  This fills in:
 				xEthernetHeader.xSourceAddress
 				xEthernetHeader.usFrameType
@@ -159,11 +159,11 @@ unsigned int ulIPAddress = pxNetworkBuffer->ulIPAddress;
 			and
 				xIPHeader.usHeaderChecksum
 			*/
-			/* Save options now, as they will be overwritten by memcpy */
+			/* Save options now, as they will be overwritten by memcpy2 */
 			#if( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
 				xSocketOptions = pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ];
 			#endif
-			memcpy( ( void *) &( pxUDPPacket->xEthernetHeader.xSourceAddress ), ( void * ) xDefaultPartUDPPacketHeader.ucBytes, sizeof( xDefaultPartUDPPacketHeader ) );
+			memcpy2( ( void *) &( pxUDPPacket->xEthernetHeader.xSourceAddress ), ( void * ) xDefaultPartUDPPacketHeader.ucBytes, sizeof( xDefaultPartUDPPacketHeader ) );
 
 		#if ipconfigSUPPORT_OUTGOING_PINGS == 1
 			if( pxNetworkBuffer->usPort == ipPACKET_CONTAINS_ICMP_DATA )

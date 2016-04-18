@@ -7,7 +7,7 @@ ARCH	?= -march=armv7-a -mtune=cortex-a7 -mfloat-abi=hard
 endif
 
 AFLAGS ?= $(ARCH) -DRASPPI=$(RASPPI)
-CFLAGS += $(ARCH) -g -std=gnu99 -Wno-psabi -fsigned-char -DRASPPI=$(RASPPI) -nostdlib -Wno-implicit #-finstrument-functions
+CFLAGS += $(ARCH) -g -std=gnu99 -Wno-psabi -fsigned-char -DRASPPI=$(RASPPI) -nostdlib -Wno-implicit -mfloat-abi=softfp -finstrument-functions
 CFLAGS += -I $(BASE)FreeRTOS/Source/portable/GCC/RaspberryPi/
 CFLAGS += -I $(BASE)FreeRTOS/Source/include/
 CFLAGS += -I $(BASE)Drivers/
