@@ -37,13 +37,11 @@ println("try send", 0xFF0000FF);
 			OutputInfo out;
 			xQueueReceive(xOutputQueue, &out, 1000);
 			NetworkBufferDescriptor_t * const pxDescriptor = out.pNetworkBufferDescriptor_t;
-printHex("length ", pxDescriptor->xDataLength, 0xFF0000FF);
-			for(int i = 0; i < pxDescriptor->xDataLength; i++){printHex("", ((char*)pxDescriptor->pucEthernetBuffer)[i], 0xFFFFFFFF);}
+			//for(int i = 0; i < pxDescriptor->xDataLength; i++){printHex("", ((char*)pxDescriptor->pucEthernetBuffer)[i], 0xFFFFFFFF);}
 			USPiSendFrame((void *)pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength);
 			if(out.bReleaseAfterSend) vReleaseNetworkBufferAndDescriptor( pxDescriptor );
 println("sent", 0xFF0000FF);
 		}
-		println("fin", 0xFF0000FF);
 
 		/* If pxNextNetworkBufferDescriptor was not left pointing at a valid
 		descriptor then allocate one now. */
@@ -113,7 +111,7 @@ portBASE_TYPE xNetworkInterfaceInitialise(){
 
 	xTaskCreate(ethernetPollTask, "poll", 128, NULL, 0, NULL);
 extern int loaded;
-loaded = 2;
+//loaded = 2;
 	return pdPASS;
 }
 
@@ -128,9 +126,10 @@ portBASE_TYPE xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescr
 	//}
 
 OutputInfo out;
-out.pNetworkBufferDescriptor_t = &pxDescriptor;
+out.pNetworkBufferDescriptor_t = pxDescriptor;
 out.bReleaseAfterSend = bReleaseAfterSend;
-println("asdf", 0xFFFFFFFF);
+printHex("TEST", pxDescriptor, 0xFFFFFFFF);
+printHex("TEST2", pxDescriptor->xDataLength, 0xFFFFFFFF);
 xQueueSendToBack(xOutputQueue, &out, 1000);
 
 	//if( bReleaseAfterSend != pdFALSE ){
