@@ -1,6 +1,6 @@
-#include <video.h>
-int depth = 0;
-
+//trace.c
+//authored by Jared Hull
+//
 //use the GCC flag -finstrument-functions to enable tracing
 //these trace functions will output the pointer to
 //the function in which they are called by gcc
@@ -8,7 +8,10 @@ int depth = 0;
 
 //you must add __attribute__((no_instrument_function))
 //to any function you do not want traced
-//especially ones which are printing out the trace :)
+//especially ones which are printing out the trace
+
+#include <video.h>
+int depth = 0;
 
 __attribute__((no_instrument_function))
 void __cyg_profile_func_enter (void *this_fn, void *call_site){

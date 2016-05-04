@@ -1,3 +1,8 @@
+//mailbox.c
+//authored by Jared Hull
+//
+//These functions are used for communications between the CPU and GPU
+
 #include <mailbox.h>
 
 //direct memory get and set

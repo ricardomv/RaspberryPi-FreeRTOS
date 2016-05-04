@@ -47,7 +47,6 @@ OBJECTS += $(BUILD_DIR)Drivers/video.o
 
 #smsc9514 (LAN and USB)
 OBJECTS += $(BUILD_DIR)Drivers/lan9514/uspibind.o
-OBJECTS += $(BUILD_DIR)Drivers/lan9514/arp.o
 OBJECTS += $(BUILD_DIR)Drivers/lan9514/lib/uspilibrary.o
 OBJECTS += $(BUILD_DIR)Drivers/lan9514/lib/dwhcidevice.o
 OBJECTS += $(BUILD_DIR)Drivers/lan9514/lib/dwhciregister.o

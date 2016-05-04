@@ -1,3 +1,6 @@
+//mem.c
+//standard memory functions to avoid using incompatible libraries on ARM
+
 #include <FreeRTOS.h>
 #include <mem.h>
 
