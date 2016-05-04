@@ -14,7 +14,7 @@
 /* The queue used to pass events into the IP-task for processing. */
 xQueueHandle xOutputQueue = NULL;
 
-typedef struct asdf{
+typedef struct OutputInfo_asdf{
 	int pNetworkBufferDescriptor_t;
 	int portBASE_TYPE bReleaseAfterSend;
 } OutputInfo;
@@ -33,14 +33,14 @@ void ethernetPollTask(){
 	for( ;; ){
 		//send any waiting packets first
 		for(int i = 0; i < uxQueueMessagesWaiting(xOutputQueue); i++){
-println("try send", 0xFF0000FF);
+println("try send", 0xFF0000cc);
 			OutputInfo out;
 			xQueueReceive(xOutputQueue, &out, 1000);
-			NetworkBufferDescriptor_t * const pxDescriptor = out.pNetworkBufferDescriptor_t;
+			NetworkBufferDescriptor_t * const pxDescriptor = (NetworkBufferDescriptor_t*)out.pNetworkBufferDescriptor_t;
 			//for(int i = 0; i < pxDescriptor->xDataLength; i++){printHex("", ((char*)pxDescriptor->pucEthernetBuffer)[i], 0xFFFFFFFF);}
 			USPiSendFrame((void *)pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength);
 			if(out.bReleaseAfterSend) vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-println("sent", 0xFF0000FF);
+println("sent", 0xFF0000cc);
 		}
 
 		/* If pxNextNetworkBufferDescriptor was not left pointing at a valid
@@ -110,30 +110,14 @@ portBASE_TYPE xNetworkInterfaceInitialise(){
 	}
 
 	xTaskCreate(ethernetPollTask, "poll", 128, NULL, 0, NULL);
-extern int loaded;
-//loaded = 2;
+
 	return pdPASS;
 }
 
 portBASE_TYPE xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor, portBASE_TYPE bReleaseAfterSend ){
-	int usPHYLinkStatus = 42;
-	//if( ( usPHYLinkStatus & 4 ) != 0 ){
-		/* Not interested in a call-back after TX. */
-//for(int i = 0; i < pxDescriptor->xDataLength; i++){printHex("", ((char*)pxDescriptor->pucEthernetBuffer)[i], 0xFFFFFFFF);}
-//extern int loaded;
-//loaded = 2;
-		//USPiSendFrame((void *)pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength);
-	//}
-
-OutputInfo out;
-out.pNetworkBufferDescriptor_t = pxDescriptor;
-out.bReleaseAfterSend = bReleaseAfterSend;
-printHex("TEST", pxDescriptor, 0xFFFFFFFF);
-printHex("TEST2", pxDescriptor->xDataLength, 0xFFFFFFFF);
-xQueueSendToBack(xOutputQueue, &out, 1000);
-
-	//if( bReleaseAfterSend != pdFALSE ){
-	//	vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-	//}
+	OutputInfo out;
+	out.pNetworkBufferDescriptor_t = (int)pxDescriptor;
+	out.bReleaseAfterSend = bReleaseAfterSend;
+	xQueueSendToBack(xOutputQueue, &out, 1000);
 	return 1;
 }
