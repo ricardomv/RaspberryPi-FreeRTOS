@@ -68,16 +68,13 @@ int main(void) {
 	SetGpio(47, 1);
 	//videotest();
 
-	//set to 0 for no debug, 1 for debug, or 2 for GCC instrumentation (if enabled in config)
-	loaded = 1;
-
 	DisableInterrupts();
 	InitInterruptController();
 
 	//ensure the IP and gateway match the router settings!
-	const unsigned char ucIPAddress[ 4 ] = {192, 168, 0, 42};
+	const unsigned char ucIPAddress[ 4 ] = {192, 168, 1, 42};
 	const unsigned char ucNetMask[ 4 ] = {255, 255, 255, 0};
-	const unsigned char ucGatewayAddress[ 4 ] = {192, 168, 0, 1};
+	const unsigned char ucGatewayAddress[ 4 ] = {192, 168, 1, 1};
 	const unsigned char ucDNSServerAddress[ 4 ] = {8, 8, 8, 8};
 	const unsigned char ucMACAddress[ 6 ] = {0xB8, 0x27, 0xEB, 0x19, 0xAD, 0xA7};
 	FreeRTOS_IPInit(ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress);
@@ -86,6 +83,9 @@ int main(void) {
 
 	xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
 	xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
+
+	//set to 0 for no debug, 1 for debug, or 2 for GCC instrumentation (if enabled in config)
+	loaded = 1;
 
 	vTaskStartScheduler();
 

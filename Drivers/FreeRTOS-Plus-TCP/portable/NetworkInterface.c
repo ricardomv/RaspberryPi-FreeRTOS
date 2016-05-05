@@ -70,6 +70,7 @@ println("sent", 0xFF0000cc);
 			continue;//break;
 		}
 printHex("Frame received ", ulReceiveCount, 0xFFFFFFFF);
+if(ulReceiveCount != 0x3c) for(int i = 0; i < ulReceiveCount; i++){printHex("", ((char*)pucUseBuffer)[i], 0xFFFFFFFF);}
 		if( pxNextNetworkBufferDescriptor == NULL )
 		{
 			/* Data was read from the hardware, but no descriptor was available

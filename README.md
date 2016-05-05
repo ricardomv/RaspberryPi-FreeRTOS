@@ -9,7 +9,7 @@ https://github.com/rsta2/uspi
 TCP/IP portion is the official FreeRTOS driver with modifications for compatability.
 http://www.freertos.org/FreeRTOS-Labs/RTOS_labs_download.html
 
-Due to time constraits, this build is full of debug statements, inconsistent code formatting, and less than optimised code. As of now, only ARP has been tested to work. For reasons not yet known, interrupts become disabled before calls to DWHCIDeviceTransferStage which hangs the system. I suspect portYIELD_WITHIN_API within the implimentation of queues switches contexts while interrupts are disabled.
+In it’s current state, some debug statements are left in, sockets can not be accepted, and interrupts will sometimes become disabled and cause a hang. All of the current issues and many of the previous issues were due to interrupts being disabled while the ethernet task was attempting to use INT 9 (USB) for a transaction. It appears as though the implementation of the FreeRTOS queue calls portYIELD_WITHIN_API which switches to another task from within a critical section where interrupts are disabled. In one test case, the addition of a new client to the router caused a packet of length 0x156 to be sent to the RPi with a mysterious IP protocol of 0x96, unexpected packets like this cause the RPi to hang while processing the packet. Only ARP packets have been tested to work reliably. It is possible that it is unable to accept sockets for similar reasons. Further development should continue here.
 
 ## Howto Build
 
