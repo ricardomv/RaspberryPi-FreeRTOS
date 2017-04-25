@@ -57,9 +57,9 @@ void SetGpio(unsigned int pinNum, unsigned int pinVal) {
 	unsigned long mask=(1<<(pinNum%32));
 
 	if(pinVal) {
-		pRegs->GPSET[offset]|=mask;
+		pRegs->GPSET[offset]=mask;
 	} else {
-		pRegs->GPCLR[offset]|=mask;
+		pRegs->GPCLR[offset]=mask;
 	}
 }
 
