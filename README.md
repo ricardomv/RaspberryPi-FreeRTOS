@@ -11,6 +11,19 @@ http://www.freertos.org/FreeRTOS-Labs/RTOS_labs_download.html
 
 In it’s current state, some debug statements are left in, sockets can not be accepted, and interrupts will sometimes become disabled and cause a hang. All of the current issues and many of the previous issues were due to interrupts being disabled while the ethernet task was attempting to use INT 9 (USB) for a transaction. It appears as though the implementation of the FreeRTOS queue calls portYIELD_WITHIN_API which switches to another task from within a critical section where interrupts are disabled. In one test case, the addition of a new client to the router caused a packet of length 0x156 to be sent to the RPi with a mysterious IP protocol of 0x96, unexpected packets like this cause the RPi to hang while processing the packet. Only ARP packets have been tested to work reliably. It is possible that it is unable to accept sockets for similar reasons. Further development should continue here.
 
+nemesis9@github June 26 2017 - This build now runs a simple echo server with one client.  The findings to get this to run are as follows:  
+1.  For the network stack to run, need to build with -mno-unaligned-access. Otherwise, word accesses are performed to half-word aligned fields within the ethernet frame.  Even though the unaligned access aborts are turned off in the control reg, the ARM Cortex A7 can still fault on these types of accesses, see the ARM documentation for Cortex A7. 
+2. Once number 1 is done, the network buffers will be zeroed out or corrupted by the IP task. This is because the IP task is trying to reuse the buffer after it is sent.  It does this because it thinks the network buffer has been copied by the sending code.  In a lot of FreeRTOS+TCP examples the frames are sent as part of the IP task. So, I first tried to just go ahead and send the frames in xNetworkInterfaceOutput (in NetworkInterface.c).  My thinking was that now the frames *WOULD* be sent before modification, since it would now be done as part of the IP task, instead of waiting for the ethtask to send them.  However, I then ran into failures with the USPi driver code. It failed with asserts on m_bWaiting. I do not know why this happens, and did not debug it further.  Instead, upon inspecting the network code, it appeared that the right thing would be done if the network code thought it had a ZERO COPY TX DRIVER.  Even though we might not really have a ZERO COPY TX driver, it acts like one, since a pointer to the network buffer is passed to the ethtask.  So, I turned this on in FreeRTOSIPConfigDefaults.h and that worked around the issue.
+3. After number 2, I ran into malloc failures on network buffers.  So, I increased configTOTAL_HEAP_SIZE in FreeRTOSConfig.h to 122880.  The Raspberry PI 2B has sufficient memory for this.
+
+Current State:  This build will do a simple echo server with one client.  I tried to spawn multiple client tasks to handle multiple connections, but could only get one client to work. Additional accepts would not work.  The TCP/IP code complains that there is no socket for the second or greater connection attempt.
+
+I have not tested this very robustly, I am not sure if Network Buffers are being managed in the most optimum way. That is, will it run out of buffers,  are they being released properly.  I have only tested with a Linux laptop connected directly to the Pi with static IP assignment.  I did not put the Pi on a router or try to do DHCP. 
+
+I would like to do more debugging of the USPi failure in #2 above.      
+
+There is still debugging code in, but I turned off -finstrument-functions
+
 ## Howto Build
 
 Type make

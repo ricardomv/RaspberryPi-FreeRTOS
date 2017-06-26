@@ -478,7 +478,7 @@ struct freertos_sockaddr xAddress;
 		#endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
 		iptraceNETWORK_EVENT_RECEIVED( xReceivedEvent.eEventType );
-printHex("event ", xReceivedEvent.eEventType, 0xFFFFFFFF);
+//printHex("event ", xReceivedEvent.eEventType, 0xFFFFFFFF);
 		switch( xReceivedEvent.eEventType )
 		{
 			case eNetworkDownEvent :

@@ -430,7 +430,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 	/* When non-zero, the buffers passed to the SEND routine may be passed
 	to DMA. As soon as sending is ready, the buffers must be released by
 	calling vReleaseNetworkBufferAndDescriptor(), */
-	#define ipconfigZERO_COPY_TX_DRIVER		( 0 )
+	#define ipconfigZERO_COPY_TX_DRIVER		( 1 )
 #endif
 
 #ifndef ipconfigZERO_COPY_RX_DRIVER
