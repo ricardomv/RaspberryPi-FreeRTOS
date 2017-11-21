@@ -9,6 +9,7 @@
 
 #include "interrupts.h"
 #include "gpio.h"
+#include "bcm2835.h"
 #include "video.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
@@ -27,7 +28,8 @@ void task1() {
 	int i = 0;
 	while(1) {
 		i++;
-		SetGpio(47, 1);
+        bcm2835_gpio_fsel(RPI_V2_GPIO_P1_03, BCM2835_GPIO_FSEL_OUTP);
+    	bcm2835_gpio_write(RPI_V2_GPIO_P1_03, HIGH);
 		vTaskDelay(200);
 	}
 }
@@ -37,7 +39,8 @@ void task2() {
 	while(1) {
 		i++;
 		vTaskDelay(100);
-		SetGpio(47, 0);
+        bcm2835_gpio_fsel(RPI_V2_GPIO_P1_03, BCM2835_GPIO_FSEL_OUTP);
+    	bcm2835_gpio_write(RPI_V2_GPIO_P1_03, LOW);
 		vTaskDelay(100);
 	}
 }
@@ -317,10 +320,9 @@ uint8_t *pucRxBuffer;
 
 
 int main(void) {
-	SetGpioFunction(47, 1);			// RDY led
+    bcm2835_init();
 
 	initFB();
-	SetGpio(47, 1);
 	//videotest();
 
 	DisableInterrupts();
