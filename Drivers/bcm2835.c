@@ -14,6 +14,7 @@
 
 #include <FreeRTOS.h>
 #include <task.h>
+#include <portable.h>
 
 #define MAP_FAILED 0
 
@@ -428,13 +429,13 @@ void bcm2835_gpio_set_pad(uint8_t group, uint32_t control)
 */
 void bcm2835_delay(unsigned int millis)
 {
-    vTaskDelay(millis * 200);
+    vTaskDelay(millis / portTICK_RATE_MS);
 }
 
 /* microseconds */
 void bcm2835_delayMicroseconds(uint64_t micros)
 {
-    vTaskDelay(micros);
+    vTaskDelay(micros / 1000 / portTICK_RATE_MS);
 }
 
 /*
