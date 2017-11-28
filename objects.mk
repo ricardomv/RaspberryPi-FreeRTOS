@@ -19,6 +19,7 @@ OBJECTS += $(BUILD_DIR)FreeRTOS/Source/event_groups.o
 OBJECTS += $(BUILD_DIR)Drivers/interrupts.o
 OBJECTS += $(BUILD_DIR)Drivers/gpio.o
 OBJECTS += $(BUILD_DIR)Drivers/bcm2835.o
+OBJECTS += $(BUILD_DIR)Drivers/mcp23s17.o
 
 $(BUILD_DIR)FreeRTOS/Source/portable/GCC/RaspberryPi/port.o: CFLAGS += -I $(BASE)Demo/
 

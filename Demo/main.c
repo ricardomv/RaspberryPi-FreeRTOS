@@ -10,10 +10,12 @@
 #include "interrupts.h"
 #include "gpio.h"
 #include "bcm2835.h"
+#include "mcp23s17.h"
 #include "video.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 
+#define MCP23S17_CS BCM2835_SPI_CS0
 
 //Only for debug, normally should not 
 //   include private header
@@ -28,9 +30,11 @@ void task1() {
 	int i = 0;
 	while(1) {
 		i++;
-        bcm2835_gpio_fsel(RPI_V2_GPIO_P1_03, BCM2835_GPIO_FSEL_OUTP);
-    	bcm2835_gpio_write(RPI_V2_GPIO_P1_03, HIGH);
 		vTaskDelay(200);
+        mcp23s17_write_reg( 0x00, MCP23S17_GPIOB, MCP23S17_ADDRESS );
+		vTaskDelay(200);
+        mcp23s17_write_reg( 0xff, MCP23S17_GPIOB, MCP23S17_ADDRESS );
+        //bcm2835_gpio_write(RPI_V2_GPIO_P1_03, HIGH);
 	}
 }
 
@@ -38,9 +42,7 @@ void task2() {
 	int i = 0;
 	while(1) {
 		i++;
-		vTaskDelay(100);
-        bcm2835_gpio_fsel(RPI_V2_GPIO_P1_03, BCM2835_GPIO_FSEL_OUTP);
-    	bcm2835_gpio_write(RPI_V2_GPIO_P1_03, LOW);
+        // bcm2835_gpio_write(RPI_V2_GPIO_P1_03, LOW);
 		vTaskDelay(100);
 	}
 }
@@ -50,6 +52,11 @@ void initTask( void *pvParameters )
     bcm2835_init();
     bcm2835_gpio_fsel(RPI_V2_GPIO_P1_03, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(RPI_V2_GPIO_P1_03, LOW);
+
+    mcp23s17_init( MCP23S17_CS );
+    mcp23s17_write_reg( 0x00, MCP23S17_IODIRB, MCP23S17_ADDRESS );
+    mcp23s17_write_reg( 0xff, MCP23S17_GPIOB, MCP23S17_ADDRESS );
+
 
 	xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
 	xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
