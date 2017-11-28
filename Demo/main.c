@@ -45,6 +45,18 @@ void task2() {
 	}
 }
 
+void initTask( void *pvParameters )
+{
+    bcm2835_init();
+    bcm2835_gpio_fsel(RPI_V2_GPIO_P1_03, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(RPI_V2_GPIO_P1_03, LOW);
+
+	xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
+	xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
+
+    vTaskDelete( NULL );
+}
+
 //server task does not work in this build, it fails to accept a connection
 void serverTask(){
 	//setup a socket structure
@@ -320,7 +332,6 @@ uint8_t *pucRxBuffer;
 
 
 int main(void) {
-    bcm2835_init();
 
 	initFB();
 	//videotest();
@@ -338,11 +349,9 @@ int main(void) {
 	const unsigned char ucMACAddress[ 6 ] = {0xB8, 0x27, 0xEB, 0xa5, 0x35, 0xC1};
 	FreeRTOS_IPInit(ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress);
 
-	//xTaskCreate(serverTask, "server", 128, NULL, 0, NULL);
-	xTaskCreate(serverListenTask, "server", 128, NULL, 0, NULL);
-
-	xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
-	xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
+	// xTaskCreate(serverTask, "server", 128, NULL, 0, NULL);
+	// xTaskCreate(serverListenTask, "server", 128, NULL, 0, NULL);
+	xTaskCreate(initTask, "init", 128, NULL, 0, NULL);
 
 	//set to 0 for no debug, 1 for debug, or 2 for GCC instrumentation (if enabled in config)
 	loaded = 1;
