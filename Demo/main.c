@@ -43,7 +43,7 @@
     FreeRTOS WEB site.
 
     1 tab == 4 spaces!
-    
+
     ***************************************************************************
      *                                                                       *
      *    Having a problem?  Start by reading the FAQ "My application does   *
@@ -53,17 +53,17 @@
      *                                                                       *
     ***************************************************************************
 
-    
-    http://www.FreeRTOS.org - Documentation, training, latest information, 
+
+    http://www.FreeRTOS.org - Documentation, training, latest information,
     license and contact details.
-    
+
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool.
 
-    Real Time Engineers ltd license FreeRTOS to High Integrity Systems, who sell 
-    the code with commercial support, indemnification, and middleware, under 
+    Real Time Engineers ltd license FreeRTOS to High Integrity Systems, who sell
+    the code with commercial support, indemnification, and middleware, under
     the OpenRTOS brand: http://www.OpenRTOS.com.  High Integrity Systems also
-    provide a safety engineered and independently SIL3 certified version under 
+    provide a safety engineered and independently SIL3 certified version under
     the SafeRTOS brand: http://www.SafeRTOS.com.
 */
 
@@ -75,13 +75,14 @@
 #include "Drivers/gpio.h"
 #include "Drivers/bcm2835.h"
 #include "Drivers/mcp23s17.h"
+#include "Drivers/semb.h"
 
 void task1(void *pParam) {
 
 	int i = 0;
 	while(1) {
 		i++;
-        mcp23s17_write_reg( 0xff, MCP23S17_GPIOB, MCP23S17_ADDRESS );
+        //mcp23s17_write_reg( 0xff, MCP23S17_GPIOB, MCP23S17_ADDRESS );
 		vTaskDelay(200);
 	}
 }
@@ -90,9 +91,12 @@ void task2(void *pParam) {
 
 	int i = 0;
 	while(1) {
-		i++;
 		vTaskDelay(100);
-        mcp23s17_write_reg( 0x00, MCP23S17_GPIOB, MCP23S17_ADDRESS );
+        semb_7_segment_set_number(i);
+        if (i++ == 99) {
+            i=0;
+        }
+        //mcp23s17_write_reg( 0x00, MCP23S17_GPIOB, MCP23S17_ADDRESS );
 		vTaskDelay(100);
 	}
 }
@@ -101,8 +105,8 @@ void initTask(void *pParam) {
     bcm2835_init();
 
     mcp23s17_init( BCM2835_SPI_CS0 );
-    mcp23s17_write_reg( 0x00, MCP23S17_IODIRB, MCP23S17_ADDRESS );
-    mcp23s17_write_reg( 0xff, MCP23S17_GPIOB, MCP23S17_ADDRESS );
+
+    semb_7_segment_init();
 
     xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
     xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
