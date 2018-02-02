@@ -1,0 +1,8 @@
+*.o
+*.d
+*.elf
+*.list
+*.map
+*.syms
+*.img
+__pycache__
