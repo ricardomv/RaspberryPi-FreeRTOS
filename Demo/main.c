@@ -82,8 +82,8 @@ void task1(void *pParam) {
 	int i = 0;
 	while(1) {
 		i++;
-        //mcp23s17_write_reg( 0xff, MCP23S17_GPIOB, MCP23S17_ADDRESS );
-		vTaskDelay(200);
+        semb_set_relay(0, semb_get_button(0));
+        vTaskDelay(200);
 	}
 }
 
@@ -96,17 +96,14 @@ void task2(void *pParam) {
         if (i++ == 99) {
             i=0;
         }
-        //mcp23s17_write_reg( 0x00, MCP23S17_GPIOB, MCP23S17_ADDRESS );
-		vTaskDelay(100);
+        vTaskDelay(100);
 	}
 }
 
 void initTask(void *pParam) {
     bcm2835_init();
 
-    mcp23s17_init( BCM2835_SPI_CS0 );
-
-    semb_7_segment_init();
+    semb_init();
 
     xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
     xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);

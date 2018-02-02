@@ -21,9 +21,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+enum STATE {
+    OFF,
+    ON
+};
+
+void semb_init(void);
+void semb_set_opto (int num, enum STATE state);
+void semb_set_relay (int num, enum STATE state);
+void semb_set_led (int num, enum STATE state);
+enum STATE  semb_get_button (int num);
+enum STATE semb_get_input (int num);
+void semb_set_output (int num, enum STATE state);
+void semb_7_segment_init(void);
+
 #define DISP_7_SEG_DIGIT_1 0
 #define DISP_7_SEG_DIGIT_2 7
-
-void semb_7_segment_init(void);
 void semb_7_segment_set_digit(int num, int digit);
 void semb_7_segment_set_number(int num);

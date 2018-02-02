@@ -85,6 +85,22 @@ enum DISP_7SEG {
     DISP_7SEG_DIG2_G
 };
 
+void semb_init(void){
+
+    mcp23s17_init( BCM2835_SPI_CS0 );
+    // Enable address pins
+    mcp23s17_write_reg( MCP23S17_HAEN_ON, MCP23S17_IOCON, MCP23S17_ADDRESS );
+
+    // Set port A GPIOs as outputs
+    mcp23s17_write_reg( 0x00, MCP23S17_IODIRA, MCP23S17_ADDRESS );
+    // Set port B GPIOs as inputs
+    mcp23s17_write_reg( 0xff, MCP23S17_IODIRB, MCP23S17_ADDRESS );
+    // Enable pull-up resistors
+    mcp23s17_write_reg( 0xff, MCP23S17_GPPUB, MCP23S17_ADDRESS );
+
+    semb_7_segment_init();
+}
+
 void semb_7_segment_init(void) {
     mcp23s17_write_reg( 0x00, MCP23S17_IODIRA, MCP23S17_ADDRESS + 2 );
     mcp23s17_write_reg( 0x00, MCP23S17_IODIRB, MCP23S17_ADDRESS + 2 );
@@ -110,4 +126,40 @@ void semb_7_segment_set_number(int num) {
 
     semb_7_segment_set_digit(num%10, DISP_7_SEG_DIGIT_1);
     semb_7_segment_set_digit(num/10, DISP_7_SEG_DIGIT_2);
+}
+
+void semb_set_opto (int num, enum STATE state){
+    if (0 < num > 1)
+        return;
+    semb_set_output (num, state);
+}
+
+void semb_set_relay (int num, enum STATE state){
+    if (0 < num > 1)
+        return;
+    semb_set_output (2 + num, state);
+}
+
+void semb_set_led (int num, enum STATE state){
+    if (0 < num > 3)
+        return;
+    semb_set_output (4 + num, state);
+}
+
+enum STATE semb_get_button (int num){
+    if (0 < num > 3)
+        return -1;
+    return !mcp23s17_read_bit( num, MCP23S17_GPIOB, MCP23S17_ADDRESS );
+}
+
+enum STATE semb_get_input (int num){
+    if (0 < num > 7)
+        return -1;
+    return mcp23s17_read_bit( num, MCP23S17_GPIOB, MCP23S17_ADDRESS );
+}
+
+void semb_set_output (int num, enum STATE state){
+    if (0 < num > 7)
+        return;
+    mcp23s17_write_bit( state, num, MCP23S17_GPIOA, MCP23S17_ADDRESS );
 }
