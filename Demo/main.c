@@ -70,13 +70,14 @@
 
 #include "Drivers/irq.h"
 #include "Drivers/gpio.h"
+#include "Drivers/bcm2835.h"
 
 void task1(void *pParam) {
 
 	int i = 0;
 	while(1) {
 		i++;
-		SetGpio(16, 1);
+        bcm2835_gpio_write(RPI_V2_GPIO_P1_03, LOW);
 		vTaskDelay(200);
 	}
 }
@@ -87,11 +88,21 @@ void task2(void *pParam) {
 	while(1) {
 		i++;
 		vTaskDelay(100);
-		SetGpio(16, 0);
+        bcm2835_gpio_write(RPI_V2_GPIO_P1_03, HIGH);
 		vTaskDelay(100);
 	}
 }
 
+void initTask(void *pParam) {
+    bcm2835_init();
+    bcm2835_gpio_fsel(RPI_V2_GPIO_P1_03, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(RPI_V2_GPIO_P1_03, LOW);
+
+    xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
+    xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
+
+    vTaskDelete( NULL );
+}
 
 /**
  *	This is the systems main entry, some call it a boot thread.
@@ -101,10 +112,8 @@ void task2(void *pParam) {
  **/
 void main (void)
 {
-	SetGpioFunction(16, 1);			// RDY led
 
-	xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
-	xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
+    xTaskCreate(initTask, "Initialization", 128, NULL, 0, NULL);
 
 	vTaskStartScheduler();
 
