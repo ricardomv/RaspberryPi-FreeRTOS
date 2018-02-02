@@ -2,6 +2,16 @@
 
 This provides a very basic port of FreeRTOS to Raspberry pi.
 
+## Raspberry Pi expansion Board
+
+This provides drivers and a simple API used to control a board developed in the project for the Embedded Systems course.
+
+The demo program in "Demo/main.c" exemplifies the use of the library to control some of the components.
+
+Documentation for the board can be found in:
+
+[https://pi2-ex.wixsite.com/pi2-ex](https://pi2-ex.wixsite.com/pi2-ex)
+
 ## Howto Build
 
 Type make! -- If you get an error then:
@@ -21,13 +31,3 @@ The build system also expects find your python interpreter by using /usr/bin/env
 if this doesn't work you will get problems.
 
 To resolve this, modify the #! lines in the .dbuild/pretty/*.py files.
-
-Hope this helps.
-
-I'm currently porting my BitThunder project to the Pi, which is a OS based on FreeRTOS
-but with a comprehensive driver model, and file-systems etc.
-
-http://github.com/jameswalmsley/bitthunder/
-
-James
-
