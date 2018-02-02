@@ -18,6 +18,7 @@ OBJECTS += $(BUILD_DIR)FreeRTOS/Source/tasks.o
 OBJECTS += $(BUILD_DIR)Demo/Drivers/irq.o
 OBJECTS += $(BUILD_DIR)Demo/Drivers/gpio.o
 OBJECTS += $(BUILD_DIR)Demo/Drivers/bcm2835.o
+OBJECTS += $(BUILD_DIR)Demo/Drivers/mcp23s17.o
 
 $(BUILD_DIR)FreeRTOS/Source/portable/GCC/RaspberryPi/port.o: CFLAGS += -I $(BASE)Demo/
 

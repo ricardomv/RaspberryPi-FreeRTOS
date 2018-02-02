@@ -1,6 +1,9 @@
 /*
     FreeRTOS V7.2.0 - Copyright (C) 2012 Real Time Engineers Ltd.
-	
+    Copyright (C) 2017-2018 Ricardo Vieira <ricardo.vieira@tecnico.ulisboa.pt>
+    Copyright (C) 2017-2018 Diogo Frutuoso <diogo.frutuoso@tecnico.ulisboa.pt>
+    Copyright (C) 2017-2018 Ruben Fernandes <ruben.fernandes@tecnico.ulisboa.pt>
+
 
     ***************************************************************************
      *                                                                       *
@@ -71,13 +74,14 @@
 #include "Drivers/irq.h"
 #include "Drivers/gpio.h"
 #include "Drivers/bcm2835.h"
+#include "Drivers/mcp23s17.h"
 
 void task1(void *pParam) {
 
 	int i = 0;
 	while(1) {
 		i++;
-        bcm2835_gpio_write(RPI_V2_GPIO_P1_03, LOW);
+        mcp23s17_write_reg( 0xff, MCP23S17_GPIOB, MCP23S17_ADDRESS );
 		vTaskDelay(200);
 	}
 }
@@ -88,15 +92,17 @@ void task2(void *pParam) {
 	while(1) {
 		i++;
 		vTaskDelay(100);
-        bcm2835_gpio_write(RPI_V2_GPIO_P1_03, HIGH);
+        mcp23s17_write_reg( 0x00, MCP23S17_GPIOB, MCP23S17_ADDRESS );
 		vTaskDelay(100);
 	}
 }
 
 void initTask(void *pParam) {
     bcm2835_init();
-    bcm2835_gpio_fsel(RPI_V2_GPIO_P1_03, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(RPI_V2_GPIO_P1_03, LOW);
+
+    mcp23s17_init( BCM2835_SPI_CS0 );
+    mcp23s17_write_reg( 0x00, MCP23S17_IODIRB, MCP23S17_ADDRESS );
+    mcp23s17_write_reg( 0xff, MCP23S17_GPIOB, MCP23S17_ADDRESS );
 
     xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
     xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);
