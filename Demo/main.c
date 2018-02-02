@@ -65,6 +65,9 @@
     the OpenRTOS brand: http://www.OpenRTOS.com.  High Integrity Systems also
     provide a safety engineered and independently SIL3 certified version under
     the SafeRTOS brand: http://www.SafeRTOS.com.
+
+    This demo was altered to test components used in a Raspberry Pi Expansion Board
+
 */
 
 
@@ -76,6 +79,9 @@
 #include "Drivers/bcm2835.h"
 #include "Drivers/mcp23s17.h"
 #include "Drivers/semb.h"
+#include "Drivers/hd44780u.h"
+
+extern int lcdHandle;
 
 void task1(void *pParam) {
 
@@ -104,6 +110,9 @@ void initTask(void *pParam) {
     bcm2835_init();
 
     semb_init();
+
+    lcdPosition (lcdHandle, 0, 0) ; lcdPuts (lcdHandle, "RPi Expansion   ") ;
+    lcdPosition (lcdHandle, 0, 1) ; lcdPuts (lcdHandle, "  IST S.Emb 2017") ;
 
     xTaskCreate(task1, "LED_0", 128, NULL, 0, NULL);
     xTaskCreate(task2, "LED_1", 128, NULL, 0, NULL);

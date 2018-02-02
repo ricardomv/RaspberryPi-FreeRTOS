@@ -21,8 +21,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "mcp23s17.h"
 #include "semb.h"
+#include "bcm2835.h"
+#include "mcp23s17.h"
+#include "hd44780u.h"
+
+int lcdHandle;
 
 const unsigned int segment[16][2] = {
     {2, MCP23S17_GPIOB},  // DIG1_A
@@ -99,6 +103,18 @@ void semb_init(void){
     mcp23s17_write_reg( 0xff, MCP23S17_GPPUB, MCP23S17_ADDRESS );
 
     semb_7_segment_init();
+
+    // LCD initialization
+
+    // Set LCD R/W pin to write
+    bcm2835_gpio_fsel(RPI_V2_GPIO_P1_18, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(RPI_V2_GPIO_P1_18, LOW);
+
+    lcdHandle = lcdInit (2, 16, 8,
+    	RPI_V2_GPIO_P1_16, RPI_V2_GPIO_P1_29,
+    	RPI_V2_GPIO_P1_32, RPI_V2_GPIO_P1_31, RPI_V2_GPIO_P1_33, RPI_V2_GPIO_P1_36,
+        RPI_V2_GPIO_P1_35, RPI_V2_GPIO_P1_38, RPI_V2_GPIO_P1_37, RPI_V2_GPIO_P1_40);
+
 }
 
 void semb_7_segment_init(void) {
